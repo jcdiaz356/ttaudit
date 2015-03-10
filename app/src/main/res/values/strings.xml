@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">System Auditor</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="user_name">Usuario</string>
+    <string name="password">Contraseña</string>
+    <!--String main menu right-->
+    <string name="profile">Usuario</string>
+    <string name="change_password">Cambiar Contraseña</string>
+    <string name="exit">Salir</string>
+    <!-- Nav Drawer Menu Items -->
+    <string-array name="nav_drawer_items">
+        <item >Mis Rutas</item>
+        <item >PDVs del Día</item>
+        <item >SYNC</item>
+        <item >Configuración</item>
+        <!--<item >Communities</item>-->
+        <!--<item >Pages</item>-->
+        <!--<item >What\'s Hot</item>-->
+    </string-array>
+    <!-- Nav Drawer List Item Icons -->
+    <!-- Keep them in order as the titles are in -->
+    <array name="nav_drawer_icons">
+        <item>@drawable/ic_mis_rutas</item>
+        <item>@drawable/ic_pdvs</item>
+        <item>@drawable/ic_sync</item>
+        <item>@drawable/ic_configuration</item>
+        <!--<item>@drawable/ic_communities</item>-->
+        <!--<item>@drawable/ic_pages</item>-->
+        <!--<item>@drawable/ic_whats_hot</item>-->
+    </array>
+    <!-- Content Description -->
+    <string name="desc_list_item_icon">Item Icon</string>
+
+    <!--BOTONES LOGIN-->
+    <string name="central">Central</string>
+    <string name="ubicacion">Ubicación</string>
+
+
+   <!-- Mapa de rutas-->
+
+    <string name="str_btn_draw">Draw Route</string>
+</resources>
