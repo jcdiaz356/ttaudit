@@ -3,7 +3,7 @@ package model;
 /**
  * Created by usuario on 30/01/2015.
  */
-public class Categoria {
+public class Categoria  {
 
     private String  Nombre ;
     private int Status, Id;

@@ -14,4 +14,7 @@ public final class GlobalConstant {
 
 
     public static final String KEY_USERNAME = "username";
+    public static String inicio,fin;
+    public static  double latitude_open, longitude_open;
+
 }

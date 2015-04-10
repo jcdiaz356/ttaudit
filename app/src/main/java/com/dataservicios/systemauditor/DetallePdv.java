@@ -1,7 +1,9 @@
 package com.dataservicios.systemauditor;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -46,6 +48,8 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import app.AppController;
@@ -77,7 +81,7 @@ public class DetallePdv extends FragmentActivity {
     private String fechaRuta;
     EditText pdvs1,pdvsAuditados1,porcentajeAvance1;
     TextView tvTienda,tvDireccion ,tvRepresentante , tvPDVSdelDía , tvLong, tvLat;
-    Button btGuardarLatLong;
+    Button btGuardarLatLong, btCerrarAudit;
     Activity MyActivity = (Activity) this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +102,7 @@ public class DetallePdv extends FragmentActivity {
         tvLong = (TextView) findViewById(R.id.tvlogitud);
         tvLat = (TextView) findViewById(R.id.tvLatitud);
         btGuardarLatLong = (Button) findViewById(R.id.btGuardarLatLong);
+        btCerrarAudit = (Button) findViewById(R.id.btCerrarAuditoria);
         // get user data from session
         HashMap<String, String> user = session.getUserDetails();
         // name
@@ -150,6 +155,63 @@ public class DetallePdv extends FragmentActivity {
                 guardarCoordenadas();
             }
         });
+
+        btCerrarAudit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity);
+                builder.setTitle("Guardar Encuesta");
+                builder.setMessage("Está seguro de cerrar la auditoría: ");
+                builder.setPositiveButton("Si", new DialogInterface.OnClickListener()
+
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        Calendar c = Calendar.getInstance();
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        String strDate = sdf.format(c.getTime());
+                        GlobalConstant.fin = strDate;
+
+                        JSONObject paramsCloseAudit = new JSONObject();
+                        try {
+                            paramsCloseAudit.put("latitud_close", lat);
+                            paramsCloseAudit.put("longitud_close", lon);
+                            paramsCloseAudit.put("latitud_open", GlobalConstant.latitude_open);
+                            paramsCloseAudit.put("longitud_open",  GlobalConstant.latitude_open);
+                            paramsCloseAudit.put("tiempo_inicio",  GlobalConstant.inicio);
+                            paramsCloseAudit.put("tiempo_fin",  GlobalConstant.fin);
+                            paramsCloseAudit.put("tduser", id_user);
+                            paramsCloseAudit.put("id", idPDV);
+                            paramsCloseAudit.put("idruta", IdRuta);
+                            insertaTiemporAuditoria(paramsCloseAudit);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        dialog.dismiss();
+
+                    }
+                });
+
+                builder.setNegativeButton("No", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        dialog.dismiss();
+                    }
+                });
+
+                builder.show();
+                builder.setCancelable(false);
+
+
+            }
+        });
+
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Cargando...");
         pDialog.setCancelable(false);
@@ -170,19 +232,25 @@ public class DetallePdv extends FragmentActivity {
         Bundle bundle = getIntent().getExtras();
         idPDV= bundle.getInt("idPDV");
         IdRuta= bundle.getInt("idRuta");
-
         fechaRuta= bundle.getString("fechaRuta");
         tvPDVSdelDía.setText(fechaRuta);
+
         try {
             params.put("id", idPDV);
             params.put("idRoute", IdRuta);
+            //Enviando
+
+            params.put("iduser", id_user);
 
             //params.put("id_pdv",idPDV);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         cargaPdvs();
-        cargarAditoriasPrueba();
+        //cargarAditoriasInterbank();
+        cargarAditoriasInterbank();
+        //cargaAuditorias();
+        //cargarAditoriasDeMuestra();
     }
     private void comenzarLocalizacion()
     {
@@ -326,6 +394,7 @@ public class DetallePdv extends FragmentActivity {
                                                     //Toast.makeText(MyActivity,"Lat: " + lat + "\nLon: " + lon, Toast.LENGTH_SHORT).show();
                                                 }
                                             });
+
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
@@ -436,7 +505,124 @@ public class DetallePdv extends FragmentActivity {
     }
 
     private void cargarAditoriasPrueba(){
+        showpDialog();
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonAuditsForStore" ,params,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response)
+                    {
+                        Log.d("DATAAAA", response.toString());
+                        //adapter.notifyDataSetChanged();
+                        try {
+                            //String agente = response.getString("agentes");
+                            int success =  response.getInt("success");
+                            idCompany =response.getInt("company");
+                            if (success == 1) {
+                                JSONArray agentesObjJson;
+                                agentesObjJson = response.getJSONArray("audits");
+                                // looping through All Products
+                                for (int i = 0; i < agentesObjJson.length(); i++) {
+                                    JSONObject obj = agentesObjJson.getJSONObject(i);
+                                    // Storing each json item in variable
+                                    String idAuditoria = obj.getString("id");
+                                    String auditoria = obj.getString("fullname");
+                                    int status = obj.getInt("state");
+                                    bt = new Button(MyActivity);
+                                    LinearLayout ly = new LinearLayout(MyActivity);
+                                    ly.setOrientation(LinearLayout.VERTICAL);
+                                    ly.setId(i+'_');
+                                    LayoutParams params = new LayoutParams(
+                                            LayoutParams.FILL_PARENT,
+                                            LayoutParams.FILL_PARENT
+                                    );
+                                    params.setMargins(0, 10, 0, 10);
+                                    ly.setLayoutParams(params);
+                                    bt.setBackgroundColor(getResources().getColor(R.color.color_base));
+                                    bt.setTextColor(getResources().getColor(R.color.color_fondo));
+                                    bt.setText(auditoria);
 
+                                    if(status==1) {
+                                        Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_on);
+                                        img.setBounds( 0, 0, 60, 60 );  // set the image size
+                                        bt.setCompoundDrawables( img, null, null, null );
+                                        bt.setBackgroundColor(getResources().getColor(R.color.color_bottom_buttom_pressed));
+                                        bt.setTextColor(getResources().getColor(R.color.color_base));
+                                        bt.setEnabled(false);
+                                    }  else {
+                                        Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_off);
+                                        img.setBounds( 0, 0, 60, 60 );  // set the image size
+                                        bt.setCompoundDrawables( img, null, null, null );
+                                    }
+                                    //bt.setBackground();
+                                    bt.setId(Integer.valueOf(idAuditoria));
+                                    bt.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+                                    bt.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            // Toast.makeText(getActivity(), j  , Toast.LENGTH_LONG).show();
+                                            Button button1 = (Button) v;
+                                            String texto = button1.getText().toString();
+                                            //Toast toast=Toast.makeText(getActivity(), selected, Toast.LENGTH_SHORT);
+                                            Toast toast;
+                                            toast = Toast.makeText(MyActivity, texto, Toast.LENGTH_LONG);
+                                            toast.show();
+                                            //int idBoton = Integer.valueOf(idAuditoria);
+                                            Intent intent;
+                                            int idAuditoria = button1.getId();
+                                            switch (idAuditoria) {
+                                                case 4:
+//                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
+//                                                    startActivity(intent);
+                                                    Bundle argRuta = new Bundle();
+                                                    argRuta.putInt("company_id",idCompany);
+                                                    argRuta.putInt("idPDV",idPDV);
+                                                    argRuta.putInt("idRuta", IdRuta );
+                                                    argRuta.putString("fechaRuta",fechaRuta);
+                                                    argRuta.putInt("idAuditoria",idAuditoria);
+                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
+                                                    intent.putExtras(argRuta);
+                                                    startActivity(intent);
+                                                    break;
+                                                case 2:
+                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
+                                                    startActivity(intent);
+                                                    break;
+                                            }
+                                        }
+                                    });
+                                    ly.addView(bt);
+                                    linearLayout.addView(ly);
+
+
+
+                                }
+
+
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+
+                        hidepDialog();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //VolleyLog.d(TAG, "Error: " + error.getMessage());
+                        hidepDialog();
+                    }
+                }
+        );
+
+        AppController.getInstance().addToRequestQueue(jsObjRequest);
+
+    }
+
+    private void cargarAditoriasInterbank(){
+        showpDialog();
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonAuditsForStore" ,params,
                 new Response.Listener<JSONObject>()
                 {
@@ -485,6 +671,147 @@ public class DetallePdv extends FragmentActivity {
                                         Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_off);
                                         img.setBounds( 0, 0, 60, 60 );  // set the image size
                                         bt.setCompoundDrawables( img, null, null, null );
+                                    }
+                                    //bt.setBackground();
+                                    bt.setId(Integer.valueOf(idAuditoria));
+                                    bt.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+                                    bt.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            // Toast.makeText(getActivity(), j  , Toast.LENGTH_LONG).show();
+                                            Button button1 = (Button) v;
+                                            String texto = button1.getText().toString();
+                                            //Toast toast=Toast.makeText(getActivity(), selected, Toast.LENGTH_SHORT);
+                                            Toast toast;
+                                            toast = Toast.makeText(MyActivity, texto + ":" +  button1.getId(), Toast.LENGTH_LONG);
+                                            toast.show();
+                                            //int idBoton = Integer.valueOf(idAuditoria);
+                                            Intent intent;
+                                            int idAuditoria = button1.getId();
+
+                                            Bundle argRuta = new Bundle();
+                                            argRuta.clear();
+                                            argRuta.putInt("company_id",idCompany);
+                                            argRuta.putInt("idPDV",idPDV);
+                                            argRuta.putInt("idRuta", IdRuta );
+                                            argRuta.putString("fechaRuta",fechaRuta);
+                                            argRuta.putInt("idAuditoria",idAuditoria);
+
+                                            switch (idAuditoria) {
+                                                case 7:
+//                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
+//                                                    startActivity(intent);
+
+                                                    intent = new Intent("com.dataservicios.systemauditor.INTRODUCCION");
+                                                    intent.putExtras(argRuta);
+                                                    startActivity(intent);
+
+                                                    break;
+                                                case 8:
+//                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
+//                                                    startActivity(intent);
+
+                                                    intent = new Intent("com.dataservicios.systemauditor.USOIBK");
+                                                    intent.putExtras(argRuta);
+                                                    startActivity(intent);
+
+                                                    break;
+                                                case 9:
+                                                    intent = new Intent("com.dataservicios.systemauditor.EVTRANSACCION");
+                                                    intent.putExtras(argRuta);
+                                                    startActivity(intent);
+                                                    break;
+                                                case 10:
+                                                    intent = new Intent("com.dataservicios.systemauditor.EVTRATO");
+                                                    intent.putExtras(argRuta);
+                                                    startActivity(intent);
+                                                    break;
+
+                                                case 11:
+                                                    intent = new Intent("com.dataservicios.systemauditor.INFO");
+                                                    intent.putExtras(argRuta);
+                                                    startActivity(intent);
+                                                    break;
+                                            }
+                                        }
+                                    });
+                                    ly.addView(bt);
+                                    linearLayout.addView(ly);
+                                }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        hidepDialog();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //VolleyLog.d(TAG, "Error: " + error.getMessage());
+                        hidepDialog();
+                    }
+                }
+        );
+
+        AppController.getInstance().addToRequestQueue(jsObjRequest);
+
+    }
+
+    private void cargarAditoriasDeMuestra(){
+
+
+
+
+                                for (int i = 0; i < 4; i++) {
+
+                                    // Storing each json item in variable
+                                    String idAuditoria = String.valueOf(i);
+                                    String auditoria="";
+                                    switch (i) {
+                                        case 0:
+                                            auditoria ="INTRODUCCIÓN ";
+                                            break;
+
+                                        case 1:
+                                            auditoria ="USO DE INTERBANK AGENTE ";
+                                            break;
+                                        case 2:
+                                            auditoria ="EVALUACIÓN DE TRANSACCIÓN ";
+                                            break;
+                                        case 3:
+                                            auditoria ="EVALUACIÓN DEL TRATO ";
+                                            break;
+
+
+                                    }
+                                    int status = 0;
+                                    bt = new Button(MyActivity);
+                                    LinearLayout ly = new LinearLayout(MyActivity);
+                                    ly.setOrientation(LinearLayout.VERTICAL);
+                                    ly.setId(i+'_');
+                                    LayoutParams params = new LayoutParams(
+                                            LayoutParams.FILL_PARENT,
+                                            LayoutParams.FILL_PARENT
+                                    );
+                                    params.setMargins(0, 10, 0, 10);
+                                    ly.setLayoutParams(params);
+                                    bt.setBackgroundColor(getResources().getColor(R.color.color_base));
+                                    bt.setTextColor(getResources().getColor(R.color.color_fondo));
+                                    bt.setText(auditoria);
+
+
+                                    if(status==1) {
+                                        Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_on);
+                                        img.setBounds( 0, 0, 60, 60 );  // set the image size
+                                        bt.setCompoundDrawables( img, null, null, null );
+                                        bt.setBackgroundColor(getResources().getColor(R.color.color_bottom_buttom_pressed));
+                                        bt.setTextColor(getResources().getColor(R.color.color_base));
+                                        bt.setEnabled(false);
+                                    }  else {
+                                        Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_off);
+                                        img.setBounds( 0, 0, 60, 60 );  // set the image size
+                                        bt.setCompoundDrawables( img, null, null, null );
 
                                     }
                                     //bt.setBackground();
@@ -506,25 +833,26 @@ public class DetallePdv extends FragmentActivity {
                                             Intent intent;
                                             int idAuditoria = button1.getId();
                                             switch (idAuditoria) {
-                                                case 4:
+                                                case 0:
 //                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
 //                                                    startActivity(intent);
 
-                                                    Bundle argRuta = new Bundle();
-                                                    argRuta.putInt("company_id",idCompany);
-                                                    argRuta.putInt("idPDV",idPDV);
-                                                    argRuta.putInt("idRuta", IdRuta );
-                                                    argRuta.putString("fechaRuta",fechaRuta);
-                                                    argRuta.putInt("idAuditoria",idAuditoria);
-
-                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
-                                                    intent.putExtras(argRuta);
+                                                    intent = new Intent("com.dataservicios.systemauditor.INTRODUCCION");
+                                                    //intent.putExtras(argRuta);
                                                     startActivity(intent);
 
                                                     break;
 
+                                                case 1:
+                                                    intent = new Intent("com.dataservicios.systemauditor.USOIBK");
+                                                    startActivity(intent);
+                                                    break;
                                                 case 2:
-                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
+                                                    intent = new Intent("com.dataservicios.systemauditor.EV_TRANSACCION");
+                                                    startActivity(intent);
+                                                    break;
+                                                case 3:
+                                                    intent = new Intent("com.dataservicios.systemauditor.EV_TRATO");
                                                     startActivity(intent);
                                                     break;
 
@@ -533,31 +861,7 @@ public class DetallePdv extends FragmentActivity {
                                     });
                                     ly.addView(bt);
                                     linearLayout.addView(ly);
-
-
-
                                 }
-
-
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-
-                        hidepDialog();
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        //VolleyLog.d(TAG, "Error: " + error.getMessage());
-                        hidepDialog();
-                    }
-                }
-        );
-
-        AppController.getInstance().addToRequestQueue(jsObjRequest);
 
     }
 
@@ -614,7 +918,47 @@ public class DetallePdv extends FragmentActivity {
 
     }
 
+    private void insertaTiemporAuditoria(JSONObject parametros) {
+        showpDialog();
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/insertaTiempo" ,parametros,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response)
+                    {
+                        Log.d("DATAAAA", response.toString());
+                        //adapter.notifyDataSetChanged();
+                        try {
+                            //String agente = response.getString("agentes");
+                            int success =  response.getInt("success");
+                            if (success == 1) {
+//
+                                Log.d("DATAAAA", response.toString());
+                                Toast.makeText(MyActivity, "Se actualizo su visita", Toast.LENGTH_LONG).show();
+                                finish();
+                            } else {
+                                Toast.makeText(MyActivity, "No se ha podido enviar la información, intentelo mas tarde ",Toast.LENGTH_LONG).show();
+                            }
+                        } catch (JSONException e) {
+                            Toast.makeText(MyActivity, "No se ha podido enviar la información, intentelo mas tarde ",Toast.LENGTH_LONG).show();
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //VolleyLog.d(TAG, "Error: " + error.getMessage());
+                        hidepDialog();
+                    }
+                }
+        );
 
+
+        AppController.getInstance().addToRequestQueue(jsObjRequest);
+
+
+    }
     @Override
     public void onBackPressed() {
         super.onBackPressed();

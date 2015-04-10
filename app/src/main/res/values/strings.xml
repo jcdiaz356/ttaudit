@@ -41,4 +41,8 @@
    <!-- Mapa de rutas-->
 
     <string name="str_btn_draw">Draw Route</string>
+
+    <string name="descr_image">Image</string>
+    <!--<string name="album_name">RedAgenteGlobalApp</string>-->
+    <string name="album_name">CameraSample</string>
 </resources>

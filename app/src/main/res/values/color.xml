@@ -9,6 +9,10 @@
     <!--Colores de botones botones base -->
     <color name="color_buttom_normal">@color/color_base</color>
     <color name="color_buttom_pressed">#ff363636</color>
+    <!--Colore s de botones para cerrarauditoria-->
+    <color name="color_buttom_rojo">#ffff1a10</color>
+    <color name="color_buttom_disabled">#d9d9d9</color>
+    <color name="color_buttom_verde">#ff0d843d</color>
     <!--Colores de botones botones inferior -->
     <color name="color_bottom_buttom_normal">@color/color_fondo</color>
     <color name="color_bottom_buttom_pressed">#ffc5c5c7</color>

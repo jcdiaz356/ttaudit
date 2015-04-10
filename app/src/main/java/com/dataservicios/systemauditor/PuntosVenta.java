@@ -1,6 +1,7 @@
 package com.dataservicios.systemauditor;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,7 +21,14 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.dataservicios.librerias.GPSTracker;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,7 +36,9 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -76,7 +86,7 @@ public class PuntosVenta extends Activity {
         overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left);
 
 
-        Activity MyActivity = (Activity) this;
+        final Activity MyActivity = (Activity) this;
 
         pdvs1 = (EditText) findViewById(R.id.etPDVS);
         pdvsAuditados1 = (EditText) findViewById(R.id.etPDVSAuditados);
@@ -129,6 +139,29 @@ public class PuntosVenta extends Activity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                // Obteniendo fecha y hora
+                Calendar c = Calendar.getInstance();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String strDate = sdf.format(c.getTime());
+                GlobalConstant.inicio = strDate;
+                Log.i("FECHA",strDate);
+
+                //Obteniendo Ubicacion
+                GPSTracker gps = new GPSTracker(MyActivity);
+
+                // Verificar si GPS esta habilitado
+                if(gps.canGetLocation()){
+                    double latitude = gps.getLatitude();
+                    double longitude = gps.getLongitude();
+                    GlobalConstant.latitude_open = latitude;
+                    GlobalConstant.longitude_open = longitude;
+                    //Toast toast = Toast.makeText(getApplicationContext(), "Lat: " + String.valueOf(latitude) + "Long: " + String.valueOf(longitude), Toast.LENGTH_SHORT);
+                    //toast.show();
+                }else{
+                    // Indicar al Usuario que Habilite su GPS
+                    gps.showSettingsAlert();
+                }
 
                 // selected item
                 String selected =((TextView) view.findViewById(R.id.tvId)).getText().toString();

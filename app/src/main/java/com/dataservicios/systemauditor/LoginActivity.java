@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.dataservicios.SQLite.DatabaseHelper;
 import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.GlobalMessage;
 import com.dataservicios.librerias.JSONParser;
@@ -28,6 +29,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.User;
+
 /**
  * Created by usuario on 05/11/2014.
  */
@@ -35,7 +38,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     Button ingresar, btLlamar, btUbicar;
 
     EditText usuario,contrasena;
-
+    private DatabaseHelper db;
     // Progress Dialog
     private ProgressDialog pDialog;
     // Session Manager Class
@@ -60,6 +63,14 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
         // Session Manager
         session = new SessionManager(getApplicationContext());
+
+        db = new DatabaseHelper(getApplicationContext());
+        if(db.getUserCount() > 0) {
+            User users = new User();
+            users = db.getUser(1);
+            usuario.setText(users.getNombre());
+            //contrasena.setText(users.getPassword());
+        }
 
     }
     @Override
@@ -159,6 +170,13 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                     //Enviando los datos usando Bundle a otro activity
                     Bundle bolsa = new Bundle();
                     bolsa.putString("NOMBRE", username);
+
+                    db.deleteAllUser();
+                    User users = new User();
+                    users.setId(1);
+                    users.setNombre( usuario.getText().toString());
+                    users.setPassword(contrasena.getText().toString());
+                    db.createUser(users);
                     // Creating user login session
                     // For testing i am stroing name, email as follow
                     // Use user real data

@@ -40,7 +40,7 @@
                     android:layout_marginRight="25dip"
                     android:layout_marginBottom="15dp"
                     android:id="@+id/etUsuario"
-                    android:text="jcdiaz356@gmail.com"
+                    android:text=""
                     android:ems="10"
                     android:singleLine="true">
                     <requestFocus />
@@ -61,7 +61,7 @@
                     android:layout_marginBottom="15dp"
                     android:hint="@string/password"
                     android:password="true"
-                    android:text="1234"
+                    android:text=""
                     android:id="@+id/etContrasena"
                     android:inputType="textPassword"
                     android:singleLine="true" />
