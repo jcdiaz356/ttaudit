@@ -19,6 +19,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.R;
 
@@ -47,6 +48,8 @@ public class introduccionCero extends Activity {
     RadioGroup rgTipo;
     RadioButton rbSi,rbNo;
     EditText comentario;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,7 +182,7 @@ public class introduccionCero extends Activity {
 
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST ,  GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -258,7 +261,7 @@ public class introduccionCero extends Activity {
     //Lee las preguntas del servidor para mostralo en la inteface
     private void leerPreguntasEncuesta(JSONObject  params){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST ,  GlobalConstant.dominio + "/JsonGetQuestions" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override

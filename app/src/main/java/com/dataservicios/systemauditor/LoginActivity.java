@@ -36,7 +36,6 @@ import model.User;
  */
 public class LoginActivity extends Activity implements View.OnClickListener {
     Button ingresar, btLlamar, btUbicar;
-
     EditText usuario,contrasena;
     private DatabaseHelper db;
     // Progress Dialog
@@ -66,12 +65,15 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
         db = new DatabaseHelper(getApplicationContext());
         if(db.getUserCount() > 0) {
-            User users = new User();
-            users = db.getUser(1);
-            usuario.setText(users.getNombre());
-            //contrasena.setText(users.getPassword());
+            //User users = new User();
+            List<User> usersList = db.getAllUser();
+            if(usersList.size()>0) {
+                User users = new User();
+                users=usersList.get(0);
+                usuario.setText(users.getNombre());
+                //contrasena.setText(users.getPassword());
+            }
         }
-
     }
     @Override
     public void onClick(View v) {
@@ -100,15 +102,18 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                     toast.show();
                     contrasena.requestFocus();
                 }else {
-                    new AttemptLogin().execute();
+
+                            new AttemptLogin().execute();
+
+
                 }
                 break;
-
             case R.id.btLlamar:
                 try {
                     Intent my_callIntent = new Intent(Intent.ACTION_CALL);
                     my_callIntent.setData(Uri.parse("tel:" + "948337893"));
                     //here the word 'tel' is important for making a call...
+
                     startActivity(my_callIntent);
                 } catch (ActivityNotFoundException e) {
                     Toast.makeText(getApplicationContext(), "Error in your phone call"+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -119,7 +124,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 startActivity(intent);
                 //finish();
                 break;
-
         }
     }
 
@@ -156,7 +160,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
                 Log.d("request!", "starting");
                 // getting product details by making HTTP request
-                JSONObject json = jsonParser.makeHttpRequest(GlobalConstant.LOGIN_URL ,"POST", params);
+                JSONObject json = jsonParser.makeHttpRequest(GlobalConstant.dominio + "/loginUser" ,"POST", params);
 
                 // check your log for json response
                 Log.d("Login attempt", json.toString());
@@ -166,14 +170,9 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 id_user = json.getInt("id");
                 if (success == 1) {
                     Log.d("Login Successful!", json.toString());
-                    Intent i = new Intent(LoginActivity.this, PanelAdmin.class);
-                    //Enviando los datos usando Bundle a otro activity
-                    Bundle bolsa = new Bundle();
-                    bolsa.putString("NOMBRE", username);
-
                     db.deleteAllUser();
                     User users = new User();
-                    users.setId(1);
+                    users.setId(id_user);
                     users.setNombre( usuario.getText().toString());
                     users.setPassword(contrasena.getText().toString());
                     db.createUser(users);
@@ -181,6 +180,10 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                     // For testing i am stroing name, email as follow
                     // Use user real data
                     session.createLoginSession("Jaimito el Cartero", username, String.valueOf(id_user));
+                    Intent i = new Intent(LoginActivity.this, PanelAdmin.class);
+                    //Enviando los datos usando Bundle a otro activity
+                    Bundle bolsa = new Bundle();
+                    bolsa.putString("NOMBRE", username);
                     i.putExtras(bolsa);
                     finish();
                     startActivity(i);
@@ -188,14 +191,11 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 }else{
                     Log.d("Login Failure!", json.getString("message"));
                     return json.getString("message");
-
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
             return null;
-
         }
         /**
          * After completing background task Dismiss the progress dialog

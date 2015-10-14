@@ -15,6 +15,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.RemoteViews;
 import com.dataservicios.librerias.AndroidMultiPartEntity;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.systemauditor.AlbumStorageDirFactory;
 import com.dataservicios.systemauditor.BaseAlbumDirFactory;
 import com.dataservicios.systemauditor.FroyoAlbumDirFactory;
@@ -43,6 +44,10 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+
+
+
+
 //Subida de Archivos
 public class UploadService extends IntentService{
     long totalSize = 0;
@@ -56,13 +61,13 @@ public class UploadService extends IntentService{
         super("UploadService");
     }
     ArrayList<String> names = new ArrayList<String>();
-    private static final String url_upload_image = "http://ttaudit.com/uploadImagesAudit";
-    private static final String url_insert_image = "http://ttaudit.com/insertImagesPoll";
+    private static final String url_upload_image = GlobalConstant.dominio + "/uploadImagesAudit";
+    private static final String url_insert_image = GlobalConstant.dominio + "/insertImagesPoll";
     private AlbumStorageDirFactory mAlbumStorageDirFactory = null;
     String idPDV,idPoll,tipo;
     @Override
     protected void onHandleIntent(Intent intent) {
-        notificationManager = (NotificationManager) getApplicationContext().getSystemService(getApplicationContext().NOTIFICATION_SERVICE);
+       // notificationManager = (NotificationManager) getApplicationContext().getSystemService(getApplicationContext().NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
             mAlbumStorageDirFactory = new FroyoAlbumDirFactory();
         } else {
@@ -175,14 +180,14 @@ public class UploadService extends IntentService{
          HttpResponse resp;
 
         HttpClient httpClient = new DefaultHttpClient();
-        Intent notificationIntent = new Intent();
-        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-        notification = new Notification(R.drawable.ic_salir, "TTAudit", System.currentTimeMillis());
-        notification.flags = notification.flags | Notification.FLAG_ONGOING_EVENT;
-        notification.contentView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.upload_progress_bar);
-        notification.contentIntent = contentIntent;
-        notification.contentView.setProgressBar(R.id.progressBar1, 100,0, true);
-        notificationManager.notify(1, notification);
+       // Intent notificationIntent = new Intent();
+        //PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+       // notification = new Notification(R.drawable.ic_salir, "TTAudit", System.currentTimeMillis());
+       // notification.flags = notification.flags | Notification.FLAG_ONGOING_EVENT;
+      //  notification.contentView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.upload_progress_bar);
+      //  notification.contentIntent = contentIntent;
+      //  notification.contentView.setProgressBar(R.id.progressBar1, 100,0, true);
+     //   notificationManager.notify(1, notification);
         Log.i("FOO", "Notification started");
         bbicon=BitmapFactory.decodeFile(String.valueOf(file));
         Bitmap scaledBitmap = scaleDown(bbicon, 450 , true);
@@ -204,8 +209,8 @@ public class UploadService extends IntentService{
         AndroidMultiPartEntity mpEntity = new AndroidMultiPartEntity(new AndroidMultiPartEntity.ProgressListener() {
             @Override
             public void transferred(long num) {
-                notification.contentView.setProgressBar(R.id.progressBar1, 100,(int) ((num / (float) totalSize) * 100), true);
-                notificationManager.notify(1, notification);
+                //notification.contentView.setProgressBar(R.id.progressBar1, 100,(int) ((num / (float) totalSize) * 100), true);
+               // notificationManager.notify(1, notification);
             }
         });
 
@@ -217,14 +222,14 @@ public class UploadService extends IntentService{
             Log.i("FOO", "About to call httpClient.execute");
             resp = httpClient.execute(httppost);
             if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                notification.setLatestEventInfo(context, "TTAudit", "Se subió correctamente la imágen", contentIntent);
-                notification.flags |= Notification.FLAG_AUTO_CANCEL;
-                notificationManager.notify(1, notification);
+               // notification.setLatestEventInfo(context, "TTAudit", "Se subió correctamente la imágen", contentIntent);
+               // notification.flags |= Notification.FLAG_AUTO_CANCEL;
+              //  notificationManager.notify(1, notification);
                 Log.i("FOO", "All done");
             } else {
-                notification.setLatestEventInfo(context, "TTAudit", "Ocurrió un error, no se pudo subir el archivo", contentIntent);
-                notification.flags |= Notification.FLAG_AUTO_CANCEL;
-                notificationManager.notify(1, notification);
+              //  notification.setLatestEventInfo(context, "TTAudit", "Ocurrió un error, no se pudo subir el archivo", contentIntent);
+               // notification.flags |= Notification.FLAG_AUTO_CANCEL;
+              //  notificationManager.notify(1, notification);
                 Log.i("FOO", "Screw up with http - " + resp.getStatusLine().getStatusCode());
             }
             resp.getEntity().consumeContent();

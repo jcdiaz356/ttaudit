@@ -5,7 +5,8 @@ package model;
  */
 public class Encuesta {
     private String  Question ;
-    private int Id;
+    private int Id, IdAuditoria;
+
     //private ArrayList<String> genre;
 
     public Encuesta() {
@@ -23,12 +24,20 @@ public class Encuesta {
         this.Id = Id;
     }
 
+    public int getIdAuditoria() {
+        return IdAuditoria;
+    }
+
+    public void setIdAiditoria(int IdAuditoria) {
+        this.IdAuditoria = IdAuditoria;
+    }
+
     public String getQuestion() {
         return Question;
     }
 
-    public void setQuestion(String Nombre) {
-        this.Question = Nombre;
+    public void setQuestion(String Question) {
+        this.Question = Question;
     }
 
 

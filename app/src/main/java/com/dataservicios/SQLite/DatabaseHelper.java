@@ -21,7 +21,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Logcat tag
     private static final String LOG = "DatabaseHelper";
     // Database Version
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 4;
     // Database Name
     private static final String DATABASE_NAME = "ttaudit";
     // Table Names
@@ -31,14 +31,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     //Nombre de columnas en comun
     private static final String KEY_ID = "id";
     private static final String KEY_QUESTION = "nombre";
+    private static final String KEY_ID_AUDITORIA = "idAuditoria";
     private static final String KEY_NOMBRE = "nombre";
     private static final String KEY_PASSWORD = "password";
 
     // Table Create Statements
     // eNCUESTA table create statement
     private static final String CREATE_TABLE_ENCUESTA = "CREATE TABLE "
-            + TABLE_ENCUESTA + "(" + KEY_ID + " INTEGER PRIMARY KEY," + KEY_QUESTION
-            + " TEXT" + ")";
+            + TABLE_ENCUESTA + "("
+            + KEY_ID + " INTEGER PRIMARY KEY,"
+            + KEY_ID_AUDITORIA + " INTEGER,"
+            + KEY_QUESTION  + " TEXT " + ")";
 
     // User table create statement
     private static final String CREATE_TABLE_USER = "CREATE TABLE "
@@ -50,7 +53,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null , DATABASE_VERSION);
     }
 
-
+//
     @Override
     public void onCreate(SQLiteDatabase db) {
         // creating required tables
@@ -83,6 +86,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
 
         values.put(KEY_ID, encuesta.getId());
+        values.put(KEY_ID_AUDITORIA, encuesta.getIdAuditoria());
         values.put(KEY_QUESTION, encuesta.getQuestion());
 
         // insert row
@@ -108,6 +112,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             c.moveToFirst();
         Encuesta pd = new Encuesta();
         pd.setId(c.getInt(c.getColumnIndex(KEY_ID)));
+        pd.setIdAiditoria(c.getInt(c.getColumnIndex(KEY_ID_AUDITORIA)));
+        pd.setQuestion((c.getString(c.getColumnIndex(KEY_QUESTION))));
+        return pd;
+    }
+
+    /*
+     * get single Encuesta por Auditoria
+     */
+    public Encuesta getEncuestaAuditoria(long idAuditoria) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT  * FROM " + TABLE_ENCUESTA + " WHERE "
+                + KEY_ID_AUDITORIA + " = " + idAuditoria;
+        Log.e(LOG, selectQuery);
+        Cursor c = db.rawQuery(selectQuery, null);
+        if (c != null)
+            c.moveToFirst();
+        Encuesta pd = new Encuesta();
+        pd.setId(c.getInt(c.getColumnIndex(KEY_ID)));
+        pd.setIdAiditoria(c.getInt(c.getColumnIndex(KEY_ID_AUDITORIA)));
         pd.setQuestion((c.getString(c.getColumnIndex(KEY_QUESTION))));
         return pd;
     }
@@ -129,6 +152,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             do {
                 Encuesta pd = new Encuesta();
                 pd.setId(c.getInt((c.getColumnIndex(KEY_ID))));
+                pd.setIdAiditoria(c.getInt((c.getColumnIndex(KEY_ID_AUDITORIA))));
                 pd.setQuestion((c.getString(c.getColumnIndex(KEY_QUESTION))));
 
                 // adding to todo list
@@ -182,8 +206,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-
+    //---------------------------------------------------------------//
     // ------------------------ "USER" table methods ----------------//
+    //---------------------------------------------------------------//
     /*
      * Creating a USER
      */
@@ -210,12 +235,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
     /*
-     * get single User
+     * get single User id
      */
     public User getUser(long id) {
         SQLiteDatabase db = this.getReadableDatabase();
         String selectQuery = "SELECT  * FROM " + TABLE_USER + " WHERE "
                 + KEY_ID + " = " + id;
+        Log.e(LOG, selectQuery);
+        Cursor c = db.rawQuery(selectQuery, null);
+        if (c != null)
+            c.moveToFirst();
+        User pd = new User();
+        pd.setId(c.getInt(c.getColumnIndex(KEY_ID)));
+        pd.setNombre((c.getString(c.getColumnIndex(KEY_NOMBRE))));
+        pd.setPassword((c.getString(c.getColumnIndex(KEY_PASSWORD))));
+        return pd;
+    }
+
+    /*
+     * get single User name nombre
+     */
+    public User getUserName(String name) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT  * FROM " + TABLE_USER + " WHERE "
+                + KEY_NOMBRE + " = " + name;
         Log.e(LOG, selectQuery);
         Cursor c = db.rawQuery(selectQuery, null);
         if (c != null)

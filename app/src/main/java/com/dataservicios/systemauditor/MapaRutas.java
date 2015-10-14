@@ -58,7 +58,7 @@ public class MapaRutas extends FragmentActivity {
         // Getting reference to SupportMapFragment of the activity_main
         SupportMapFragment fm = (SupportMapFragment)getSupportFragmentManager().findFragmentById(R.id.map);
         // Getting reference to Button
-        Button btnDraw = (Button)findViewById(R.id.btn_draw);
+        //Button btnDraw = (Button)findViewById(R.id.btn_draw);
         // Obtener mapas para el SupportMapFragment
         map = fm.getMap();
         // Habilitar Botón MyLocation en el Mapa
@@ -116,25 +116,25 @@ public class MapaRutas extends FragmentActivity {
         });
 
         // Haga clic en controlador de eventos para el botón btn_draw
-        btnDraw.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // Checks, whether start and end locations are captured
-                if(markerPoints.size() >= 2){
-                    LatLng origin = markerPoints.get(0);
-                    LatLng dest = markerPoints.get(1);
-
-                    // Getting URL to the Google Directions API
-                    String url = getDirectionsUrl(origin, dest);
-
-                    DownloadTask downloadTask = new DownloadTask();
-
-                    // Start downloading json data from Google Directions API
-                    downloadTask.execute(url);
-                }
-            }
-        });
+//        btnDraw.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                // Checks, whether start and end locations are captured
+//                if(markerPoints.size() >= 2){
+//                    LatLng origin = markerPoints.get(0);
+//                    LatLng dest = markerPoints.get(1);
+//
+//                    // Getting URL to the Google Directions API
+//                    String url = getDirectionsUrl(origin, dest);
+//
+//                    DownloadTask downloadTask = new DownloadTask();
+//
+//                    // Start downloading json data from Google Directions API
+//                    downloadTask.execute(url);
+//                }
+//            }
+//        });
     }
 
     private String getDirectionsUrl(LatLng origin,LatLng dest){

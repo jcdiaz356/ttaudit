@@ -24,6 +24,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.R;
 
@@ -51,7 +52,7 @@ public class informacion extends Activity {
     TextView pregunta ;
     Button guardar;
     //RadioGroup rgTipo;
-    CheckBox cbA,cbB,cbC,cbD,cbE,cbF,cbG,cbH,cbI;
+    CheckBox cbA,cbB,cbC,cbD,cbE,cbF,cbG,cbH,cbI,cbJ,cbK;
     EditText comentario;
     LinearLayout lySi , lyNo;
 
@@ -59,8 +60,8 @@ public class informacion extends Activity {
     RadioButton rbSi,rbNo;
 
 
-    int vA=0,vB=0,vC=0,vD=0,vE=0,vF=0,vG=0,vH=0,vI=0;
-    String oA="",oB="",oC="",oD="",oE="",oF="",oG="" ,oH="" ,oI="";
+    int vA=0,vB=0,vC=0,vD=0,vE=0,vF=0,vG=0,vH=0,vI=0,vJ=0,vK=0;
+    String oA="",oB="",oC="",oD="",oE="",oF="",oG="" ,oH="" ,oI="" , oJ="", oK="";
     String totalOption="";
     int totalValores ;
     String limite="";
@@ -89,6 +90,8 @@ public class informacion extends Activity {
         cbG=(CheckBox) findViewById(R.id.cbG);
         cbH=(CheckBox) findViewById(R.id.cbH);
         cbI=(CheckBox) findViewById(R.id.cbI);
+        cbJ=(CheckBox) findViewById(R.id.cbJ);
+        cbK=(CheckBox) findViewById(R.id.cbK);
 
         lySi=(LinearLayout) findViewById(R.id.lyChkSi);
         lyNo=(LinearLayout) findViewById(R.id.lyChkNo);
@@ -131,19 +134,15 @@ public class informacion extends Activity {
         }
         db.deleteAllEncuesta();
         cargarPreguntasEncuesta(params);
-
-
         rgTipo.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
         {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 // checkedId is the RadioButton selected
                 RadioButton rb=(RadioButton)findViewById(checkedId);
                 if (rbSi.getId()==checkedId){
-
                     ViewGroup.LayoutParams paramsSi = lySi.getLayoutParams();
                     paramsSi.height = 480;
                     lySi.setLayoutParams(new LinearLayout.LayoutParams(paramsSi));
-
                     ViewGroup.LayoutParams paramsNo = lyNo.getLayoutParams();
                     paramsNo.height = 2;
                     lyNo.setLayoutParams(new LinearLayout.LayoutParams(paramsNo));
@@ -156,9 +155,8 @@ public class informacion extends Activity {
                     cbG.setChecked(false);
                     cbH.setChecked(false);
                     cbI.setChecked(false);
-
-
-
+                    cbJ.setChecked(false);
+                    cbK.setChecked(false);
                 } else if (rbNo.getId()==checkedId) {
                     //lySi.setVisibility(View.INVISIBLE);
                   //  lyNo.setVisibility(View.VISIBLE);
@@ -180,6 +178,8 @@ public class informacion extends Activity {
                     cbG.setChecked(false);
                     cbH.setChecked(false);
                     cbI.setChecked(false);
+                    cbJ.setChecked(false);
+                    cbK.setChecked(false);
 
                 }
                 //textViewChoice.setText("You Selected "+rb.getText());
@@ -247,14 +247,18 @@ public class informacion extends Activity {
                     vI=1;
                     oI= pregunta.getTag().toString() + "i";
                 }
-//                if (cbG.isChecked()){
-//                    vG=1;
-//                    oG= pregunta.getTag().toString() + "g";
-//                }
+                if (cbJ.isChecked()){
+                    vJ=1;
+                    oJ= pregunta.getTag().toString() + "j";
+                }
+                if (cbK.isChecked()){
+                    vK=1;
+                    oK= pregunta.getTag().toString() + "k";
+                }
 
-                totalValores = vA + vB + vC + vD + vE + vF + vG + vH + vI;
+                totalValores = vA + vB + vC + vD + vE + vF + vG + vH + vI + vJ + vK;
 
-                totalOption = oA + "|" + oB + "|" + oC + "|" + oD + "|" + oE + "|" + oF + "|" + oG + "|" + oH  + "|" + oI  ;
+                totalOption = oA + "|" + oB + "|" + oC + "|" + oD + "|" + oE + "|" + oF + "|" + oG + "|" + oH  + "|" + oI + "|" + oJ + "|" + oK ;
 
 
                 if(totalValores<=4){
@@ -291,12 +295,14 @@ public class informacion extends Activity {
                             paramsData.put("options", "1");
                             paramsData.put("limits", "0");
                             paramsData.put("media", "0");
-                            paramsData.put("coment", "1");
+                            paramsData.put("coment", "0");
+                            paramsData.put("coment_options", "1");
                             paramsData.put("result", result);
                             paramsData.put("status", "0");
                             paramsData.put("opcion", totalOption);
-                           // paramsData.put("limite", limite);
-                            paramsData.put("comentario", comentario.getText());
+                            paramsData.put("limite", limite);
+                            paramsData.put("comentario", "");
+                            paramsData.put("comentario_options", comentario.getText());
                             //params.put("id_pdv",idPDV);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -326,7 +332,7 @@ public class informacion extends Activity {
 
     private void leerEncuesta() {
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(20);
+            Encuesta encuesta = db.getEncuesta(60);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());
@@ -336,7 +342,7 @@ public class informacion extends Activity {
 
     private void cargarPreguntasEncuesta(JSONObject  paramsData){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -392,7 +398,7 @@ public class informacion extends Activity {
 
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override

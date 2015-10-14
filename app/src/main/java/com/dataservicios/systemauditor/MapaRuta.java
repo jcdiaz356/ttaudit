@@ -17,6 +17,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.librerias.DirectionsJSONParser;
+import com.dataservicios.librerias.GlobalConstant;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -52,6 +53,8 @@ public class MapaRuta extends FragmentActivity {
     private int IdRuta ;
     private ProgressDialog pDialog;
     private JSONObject params;
+    private double lat ;
+    private double lon ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +91,7 @@ public class MapaRuta extends FragmentActivity {
         // Getting reference to SupportMapFragment of the activity_main
         SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         // Getting reference to Button
-        Button btnDraw = (Button) findViewById(R.id.btn_draw);
+        //Button btnDraw = (Button) findViewById(R.id.btn_draw);
         // Obtener mapas para el SupportMapFragment
         map = fm.getMap();
         // Habilitar Botón MyLocation en el Mapa
@@ -129,7 +132,7 @@ public class MapaRuta extends FragmentActivity {
 
 
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonRoadsMap" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonRoadsMap" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -155,13 +158,19 @@ public class MapaRuta extends FragmentActivity {
                                             // Ajuste de la posición del marcador
                                             options.position(new LatLng(Double.valueOf(obj.getString("latitude")), Double.valueOf(obj.getString("longitude"))));
                                             options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                                            options.title(obj.getString("fullname"));
                                             //Añadir nuevo marcador para la API V2 Google Map Android
                                             map.addMarker(options);
+
+                                            lat = Double.valueOf(obj.getString("latitude")) ;
+                                            lon = Double.valueOf(obj.getString("longitude"));
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
 
                                     }
+                                    CameraPosition cameraPosition = new CameraPosition.Builder().target(new LatLng(lat, lon)).zoom(15).build();
+                                    map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
                                 }
 
@@ -186,75 +195,78 @@ public class MapaRuta extends FragmentActivity {
 
 
         // Configuración onclick detector de eventos para el mapa
-        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng point) {
-                //Ya 10 localidades con 8 puntos de referencia y 1 punto de inicio y 1 ubicación final.
-                // Hasta 8 puntos de ruta son permitidos en una consulta para los usuarios no comerciales
-                if (markerPoints.size() >= 10) {
-                    return;
-                }
-
-                // Adición de un nuevo elemento a la ArrayList
-                markerPoints.add(point);
-
-                // Crear MarkerOptions
-                MarkerOptions options = new MarkerOptions();
-
-                // Ajuste de la posición del marcador
-                options.position(point);
-
-                /**
-                 * Para la ubicación de inicio, el color del marcador es verde y
-                 * Para la ubicación final, el color del marcador es ROJO y
-                 * Para el resto de los marcadores, el color es AZURE
-                 */
-                if (markerPoints.size() == 1) {
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                } else if (markerPoints.size() == 2) {
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                } else {
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-                }
-
-                //Añadir nuevo marcador para la API V2 Google Map Android
-                map.addMarker(options);
-            }
-        });
+//        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+//            @Override
+//            public void onMapClick(LatLng point) {
+//                //Ya 10 localidades con 8 puntos de referencia y 1 punto de inicio y 1 ubicación final.
+//                // Hasta 8 puntos de ruta son permitidos en una consulta para los usuarios no comerciales
+//                if (markerPoints.size() >= 10) {
+//                    return;
+//                }
+//
+//                // Adición de un nuevo elemento a la ArrayList
+//                markerPoints.add(point);
+//
+//                // Crear MarkerOptions
+//                MarkerOptions options = new MarkerOptions();
+//
+//                // Ajuste de la posición del marcador
+//                options.position(point);
+//
+//                /**
+//                 * Para la ubicación de inicio, el color del marcador es verde y
+//                 * Para la ubicación final, el color del marcador es ROJO y
+//                 * Para el resto de los marcadores, el color es AZURE
+//                 */
+//                if (markerPoints.size() == 1) {
+//                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+//                } else if (markerPoints.size() == 2) {
+//                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+//                } else {
+//                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+//                }
+//
+//                //Añadir nuevo marcador para la API V2 Google Map Android
+//                map.addMarker(options);
+//            }
+//        });
 
         // El mapa se borrará en la pulsación larga
-        map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+//        map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+//
+//            @Override
+//            public void onMapLongClick(LatLng point) {
+//                // Elimina todos los puntos del mapa de Google
+//                map.clear();
+//
+//                // Elimina todos los puntos en el ArrayList
+//                markerPoints.clear();
+//            }
+//        });
 
-            @Override
-            public void onMapLongClick(LatLng point) {
-                // Elimina todos los puntos del mapa de Google
-                map.clear();
 
-                // Elimina todos los puntos en el ArrayList
-                markerPoints.clear();
-            }
-        });
+
 
         // Haga clic en controlador de eventos para el botón btn_draw
-        btnDraw.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // Checks, whether start and end locations are captured
-                if (markerPoints.size() >= 2) {
-                    LatLng origin = markerPoints.get(0);
-                    LatLng dest = markerPoints.get(1);
-
-                    // Getting URL to the Google Directions API
-                    String url = getDirectionsUrl(origin, dest);
-
-                    DownloadTask downloadTask = new DownloadTask();
-
-                    // Start downloading json data from Google Directions API
-                    downloadTask.execute(url);
-                }
-            }
-        });
+//        btnDraw.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                // Checks, whether start and end locations are captured
+//                if (markerPoints.size() >= 2) {
+//                    LatLng origin = markerPoints.get(0);
+//                    LatLng dest = markerPoints.get(1);
+//
+//                    // Getting URL to the Google Directions API
+//                    String url = getDirectionsUrl(origin, dest);
+//
+//                    DownloadTask downloadTask = new DownloadTask();
+//
+//                    // Start downloading json data from Google Directions API
+//                    downloadTask.execute(url);
+//                }
+//            }
+//        });
     }
 
     private String getDirectionsUrl(LatLng origin, LatLng dest) {

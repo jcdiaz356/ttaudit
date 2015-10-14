@@ -22,6 +22,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.AndroidCustomGalleryActivity;
 import com.dataservicios.systemauditor.R;
@@ -161,7 +162,12 @@ public class EvaluacionTransaccionNueve   extends Activity {
                             paramsData.put("media", "1");
                             paramsData.put("coment", "0");
                             paramsData.put("result", result);
-                            paramsData.put("status", "1");
+                            if (result==0){
+                                paramsData.put("status", "0");
+                            } else if (result==1) {
+                                paramsData.put("status", "1");
+                            }
+
                             paramsData.put("comentario", "");
                             //params.put("id_pdv",idPDV);
                         } catch (JSONException e) {
@@ -193,7 +199,7 @@ public class EvaluacionTransaccionNueve   extends Activity {
     private void leerEncuesta() {
 
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(15);
+            Encuesta encuesta = db.getEncuesta(55);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());
@@ -205,7 +211,7 @@ public class EvaluacionTransaccionNueve   extends Activity {
 
     private void cargarPreguntasEncuesta(JSONObject  paramsData){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -263,7 +269,7 @@ public class EvaluacionTransaccionNueve   extends Activity {
 
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -281,8 +287,25 @@ public class EvaluacionTransaccionNueve   extends Activity {
                                 toast = Toast.makeText(MyActivity, "Se guardo correctamente los datos", Toast.LENGTH_LONG);
                                 toast.show();
                                 // onBackPressed();
+                                Bundle argRuta = new Bundle();
+                                argRuta.clear();
+                                argRuta.putInt("company_id",idCompany);
+                                argRuta.putInt("idPDV",idPDV);
+                                argRuta.putInt("idRuta", idRuta );
+                                argRuta.putInt("idAuditoria",idAuditoria);
 
-                                finish();
+                                if (result==0){
+                                    Intent intent;
+                                    intent = new Intent(MyActivity,EvaluacionTransaccionDiez.class);
+                                    intent.putExtras(argRuta);
+                                    startActivity(intent);
+                                    finish();
+                                } else if (result==1) {
+
+                                    finish();
+                                }
+
+
 
                             }
                         } catch (JSONException e) {

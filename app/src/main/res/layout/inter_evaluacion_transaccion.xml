@@ -48,6 +48,9 @@
                     android:layout_height="wrap_content"
                     android:text="Pago TC" />
 
+
+
+                
                 <RadioButton
                     android:id="@+id/rbB"
                     android:layout_width="wrap_content"

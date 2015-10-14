@@ -22,6 +22,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.R;
 
@@ -226,7 +227,7 @@ public class EvaluacionTrato extends Activity {
 
     private void leerEncuesta() {
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(17);
+            Encuesta encuesta = db.getEncuesta(57);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());
@@ -236,7 +237,7 @@ public class EvaluacionTrato extends Activity {
 
     private void cargarPreguntasEncuesta(JSONObject  paramsData){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -292,7 +293,7 @@ public class EvaluacionTrato extends Activity {
 
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override

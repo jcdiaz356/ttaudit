@@ -300,7 +300,7 @@ public class FragmentRutas extends Fragment {
     private void cargaRutasAndPdvs(){
         // Creando objeto Json y llenado en el lista pdvs de la semana
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonRoadsTotal" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonRoadsTotal" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override

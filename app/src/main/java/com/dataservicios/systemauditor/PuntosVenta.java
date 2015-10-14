@@ -221,7 +221,7 @@ public class PuntosVenta extends Activity {
 //        AppController.getInstance().addToRequestQueue(movieReq);
 
 
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonRoadsDetail" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonRoadsDetail" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -262,19 +262,24 @@ public class PuntosVenta extends Activity {
 //                                            ruta.setPorcentajeAvance(Integer.valueOf(obj.getString("auditados")));
 //                                            // adding movie to movies array
 //                                            rutaList.add(ruta);
-
-
                                             JSONObject obj = ObjJson.getJSONObject(i);
-
-
                                             Pdv pdv = new Pdv();
                                             pdv.setId(Integer.valueOf(obj.getString("id")));
                                             pdv.setPdv(obj.getString("fullname"));
                                             //pdv.setThumbnailUrl(obj.getString("image"));
                                             pdv.setDireccion(obj.getString("address"));
                                             pdv.setDistrito(obj.getString("district"));
-                                            //pdv.setStatus(obj.getInt("status"));
-                                            pdv.setStatus(0);
+                                            pdv.setStatus(obj.getInt("status"));
+
+
+//                                            int idpuntoventa=Integer.valueOf(obj.getString("id"));
+//                                            if(idpuntoventa==29){
+//                                                pdv.setStatus(1);
+//                                            } else if(idpuntoventa==34){
+//                                                pdv.setStatus(1);
+//                                            } else{
+//                                                pdv.setStatus(0);
+//                                            }
                                             // adding movie to movies array
                                             pdvList.add(pdv);
                                         } catch (JSONException e) {
@@ -357,6 +362,23 @@ public class PuntosVenta extends Activity {
                 return super.onOptionsItemSelected(item);
         }
         //return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+    }
+
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        //When BACK BUTTON is pressed, the activity on the stack is restarted
+        //Do what you want on the refresh procedure here
+        finish();
+        startActivity(getIntent());
     }
 }
 

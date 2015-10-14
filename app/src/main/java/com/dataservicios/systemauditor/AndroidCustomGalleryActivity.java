@@ -353,8 +353,8 @@ public class AndroidCustomGalleryActivity extends Activity {
             Intent i = new Intent( AndroidCustomGalleryActivity.this , AndroidCustomGalleryActivity.class);
             Bundle bolsa = new Bundle();
             bolsa.putString("idPDV", idPDV);
-            bolsa.putString("idPDV", idPoll);
-            bolsa.putString("idPDV", tipo);
+            bolsa.putString("idPoll", idPoll);
+            bolsa.putString("tipo", tipo);
             i.putExtras(bolsa);
             startActivity(i);
             finish();

@@ -20,6 +20,8 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.R;
 
@@ -30,6 +32,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 import app.AppController;
+import model.Encuesta;
 
 /**
  * Created by usuario on 30/03/2015.
@@ -48,8 +51,10 @@ public class introduccion extends Activity {
     TextView pregunta ;
     Button guardar;
     RadioGroup rgTipo;
-    RadioButton rbA,rbB,rbC,rbD, rbE;
+    RadioButton rbA,rbB,rbC,rbD, rbE, rbF;
     EditText comentario;
+
+    private DatabaseHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +65,8 @@ public class introduccion extends Activity {
         getActionBar().setTitle("Introducción");
         overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left);
 
+        db = new DatabaseHelper(getApplicationContext());
+
         pregunta = (TextView) findViewById(R.id.tvPregunta);
         guardar = (Button) findViewById(R.id.btGuardar);
         rgTipo=(RadioGroup) findViewById(R.id.rgTipo);
@@ -68,8 +75,11 @@ public class introduccion extends Activity {
         rbC=(RadioButton) findViewById(R.id.rbC);
         rbD=(RadioButton) findViewById(R.id.rbD);
         rbE=(RadioButton) findViewById(R.id.rbE);
+        rbF=(RadioButton) findViewById(R.id.rbF);
 
         comentario = (EditText) findViewById(R.id.etComentario) ;
+
+        enabledControl(false);
 //        pregunta.setText("Hoa");
 //        pregunta.setTag("145");
 
@@ -110,7 +120,26 @@ public class introduccion extends Activity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+
+        db.deleteAllEncuesta();
         leerPreguntasEncuesta(params);
+
+        rgTipo.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.rbF:
+                        enabledControl(true);
+                        break;
+
+                    default:
+                        enabledControl(false);
+                        break;
+                }
+            }
+        });
+
         guardar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,6 +163,8 @@ public class introduccion extends Activity {
                         opciones = "d";
                     }else if(id == rbE.getId()){
                         opciones = "e";
+                    }else if(id == rbF.getId()){
+                        opciones = "f";
                     }
                 }
 
@@ -157,11 +188,13 @@ public class introduccion extends Activity {
                             paramsData.put("options", "1");
                             paramsData.put("limits", "0");
                             paramsData.put("media", "0");
-                            paramsData.put("coment", "1");
+                            paramsData.put("coment", "0");
+                            paramsData.put("coment_options", "1");
                            // paramsData.put("result", result);
                             paramsData.put("status", "0");
                             paramsData.put("opcion",  pregunta.getTag().toString()+opciones.toString());
-                            paramsData.put("comentario", comentario.getText());
+                            paramsData.put("comentario", "");
+                            paramsData.put("comentario_options", comentario.getText());
                             //params.put("id_pdv",idPDV);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -188,9 +221,10 @@ public class introduccion extends Activity {
 
     }
 
+
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -206,13 +240,11 @@ public class introduccion extends Activity {
                                 Toast toast;
                                 toast = Toast.makeText(MyActivity, "Se guardo correctamente los datos", Toast.LENGTH_LONG);
                                 toast.show();
-
                                 Bundle argRuta = new Bundle();
                                 argRuta.clear();
                                 argRuta.putInt("company_id",idCompany);
                                 argRuta.putInt("idPDV",idPDV);
                                 argRuta.putInt("idRuta", idRuta );
-
                                 argRuta.putInt("idAuditoria",idAuditoria);
                                 Intent intent;
                                 intent = new Intent(MyActivity,introduccionDos.class);
@@ -281,7 +313,7 @@ public class introduccion extends Activity {
     //Lee las preguntas del servidor para mostralo en la inteface
     private void leerPreguntasEncuesta(JSONObject  params){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -303,14 +335,20 @@ public class introduccion extends Activity {
                                     String idPregunta = obj.getString("id");
                                     String question = obj.getString("question");
                                    // int status = obj.getInt("state");
-                                    if (idPregunta.equals("26")  ){
-                                        pregunta.setText(question);
-                                        pregunta.setTag(idPregunta);
-                                    }
+                                    Encuesta encuesta = new Encuesta();
+                                    encuesta.setId(Integer.valueOf(obj.getString("id")));
+                                    encuesta.setQuestion(obj.getString("question"));
+                                    db.createEncuesta(encuesta);
+
+//                                    if (idPregunta.equals("26")  ){
+//                                        pregunta.setText(question);
+//                                        pregunta.setTag(idPregunta);
+//                                    }
 
 
                                 }
                             }
+                            leerEncuesta();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -329,4 +367,30 @@ public class introduccion extends Activity {
         AppController.getInstance().addToRequestQueue(jsObjRequest);
 
     }
+
+    private void leerEncuesta() {
+        if(db.getEncuestaCount()>0) {
+            Encuesta encuesta = db.getEncuesta(66);
+            //if (idPregunta.equals("2")  ){
+            pregunta.setText(encuesta.getQuestion());
+            pregunta.setTag(encuesta.getId());
+            //}
+        }
+    }
+
+    private void enabledControl(boolean state){
+        if (state) {
+            comentario.setText("");;
+            comentario.setVisibility(View.VISIBLE);
+            comentario.setEnabled(true);
+        } else {
+            comentario.setText("");;
+            comentario.setVisibility(View.INVISIBLE);
+            comentario.setEnabled(false);
+        }
+
+    }
+
 }
+
+

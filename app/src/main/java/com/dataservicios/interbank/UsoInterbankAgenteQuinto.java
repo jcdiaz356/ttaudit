@@ -21,6 +21,8 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.R;
 
@@ -31,6 +33,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 import app.AppController;
+import model.Encuesta;
 
 /**
  * Created by usuario on 07/04/2015.
@@ -48,6 +51,9 @@ public class UsoInterbankAgenteQuinto  extends Activity {
     RadioGroup rgTipo;
     RadioButton rbSi,rbNo;
     EditText comentario;
+
+    private DatabaseHelper db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,7 +62,7 @@ public class UsoInterbankAgenteQuinto  extends Activity {
         // getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setTitle("Uso de Interbank Agente");
         overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left);
-
+        db = new DatabaseHelper(getApplicationContext());
 
         pregunta = (TextView) findViewById(R.id.tvPregunta);
         guardar = (Button) findViewById(R.id.btGuardar);
@@ -96,7 +102,7 @@ public class UsoInterbankAgenteQuinto  extends Activity {
             e.printStackTrace();
         }
 
-        leerPreguntasEncuesta(params);
+        leerEncuesta();
 
         guardar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -176,10 +182,18 @@ public class UsoInterbankAgenteQuinto  extends Activity {
         });
 
     }
-
+    private void leerEncuesta() {
+        if(db.getEncuestaCount()>0) {
+            Encuesta encuesta = db.getEncuesta(46);
+            //if (idPregunta.equals("2")  ){
+            pregunta.setText(encuesta.getQuestion());
+            pregunta.setTag(encuesta.getId());
+            //}
+        }
+    }
     private void leerPreguntasEncuesta(JSONObject  paramsData){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -230,7 +244,7 @@ public class UsoInterbankAgenteQuinto  extends Activity {
 
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override

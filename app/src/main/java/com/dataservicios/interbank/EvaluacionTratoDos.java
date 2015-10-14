@@ -21,6 +21,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.R;
 
@@ -124,19 +125,19 @@ public class EvaluacionTratoDos extends Activity {
 
                 if (cbA.isChecked()){
                     vA=1;
-                    oA= pregunta.getText() + "a";
+                    oA= pregunta.getTag() + "a";
                 }
                 if (cbB.isChecked()){
                     vB=1;
-                    oB= pregunta.getText() + "b";
+                    oB= pregunta.getTag() + "b";
                 }
                 if (cbC.isChecked()){
                     vC=1;
-                    oC= pregunta.getText() + "c";
+                    oC= pregunta.getTag() + "c";
                 }
                 if (cbD.isChecked()){
                     vD=1;
-                    oD= pregunta.getText() + "d";
+                    oD= pregunta.getTag() + "d";
                 }
 //                if (cbE.isChecked()){
 //                    vE=1;
@@ -151,7 +152,7 @@ public class EvaluacionTratoDos extends Activity {
 //                    oG= pregunta.getText() + "g";
 //                }
 
-                totalValores = vA + vB + vC + vD + vE + vF + vG;
+                totalValores = vA + vB + vC + vD ;
 
                 totalOption = oA + "|" + oB + "|" + oC + "|" + oD ;// + oE + "|" + oF + "|" + oG ;
 
@@ -229,7 +230,7 @@ public class EvaluacionTratoDos extends Activity {
 
     private void leerEncuesta() {
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(18);
+            Encuesta encuesta = db.getEncuesta(58);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());
@@ -239,7 +240,7 @@ public class EvaluacionTratoDos extends Activity {
 
     private void cargarPreguntasEncuesta(JSONObject  paramsData){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -295,7 +296,7 @@ public class EvaluacionTratoDos extends Activity {
 
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override

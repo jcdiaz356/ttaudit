@@ -84,6 +84,50 @@
         </LinearLayout>
 
     <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:id="@+id/lyChkSi">
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Letrero de metal o madera"
+            android:padding="5dp"
+            android:id="@+id/cbA" />
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rompe tráfico"
+            android:padding="5dp"
+            android:id="@+id/cbB" />
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Letrero luminoso"
+            android:padding="5dp"
+            android:id="@+id/cbC" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Letrero luminoso Bandera"
+            android:padding="5dp"
+            android:id="@+id/cbD" />
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Letrero compartido"
+            android:padding="5dp"
+            android:id="@+id/cbE" />
+
+
+
+    </LinearLayout>
+
+    <LinearLayout
         android:orientation="horizontal"
         android:layout_width="fill_parent"
         android:layout_height="56dp">

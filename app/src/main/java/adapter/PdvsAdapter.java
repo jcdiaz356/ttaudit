@@ -2,6 +2,7 @@ package adapter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +50,7 @@ public class PdvsAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        //View view = convertView;
         if (inflater == null)
             inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null)
@@ -72,12 +74,28 @@ public class PdvsAdapter extends BaseAdapter {
         direccion.setText( m.getDireccion());
         // release year
         distrito.setText(m.getDistrito());
+
         if(m.getStatus()==0){
+
             imgStatus.setImageResource(R.drawable.ic_check_off);
+
         } else if(m.getStatus()==1){
             imgStatus.setImageResource(R.drawable.ic_check_on);
         }
         return convertView;
+    }
+
+    @Override
+    public boolean isEnabled(int position) {
+
+        // Deshabilitando los items del adptador segun el statu
+        if( pdvItems.get(position).getStatus()==1){
+
+
+            return false;
+
+        }
+        return true;
     }
 
 }

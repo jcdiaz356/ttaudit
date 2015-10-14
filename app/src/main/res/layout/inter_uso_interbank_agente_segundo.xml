@@ -75,43 +75,75 @@
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:padding="5dp">
-
-            <TextView
-
+            android:padding="5dp"
+            android:id="@+id/lyChkSi">
+            <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Si no es visible Indicar por que"
-                android:id="@+id/tvComentario"
-                android:textSize="@dimen/general"
-                />
+                android:text="Colgante"
+                android:padding="5dp"
+                android:id="@+id/cbA" />
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mostrador"
+                android:padding="5dp"
+                android:id="@+id/cbB" />
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Banner"
+                android:padding="5dp"
+                android:id="@+id/cbC" />
+
 
 
 
         </LinearLayout>
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="196dp"
-            >
+        <!--<LinearLayout-->
+            <!--android:orientation="horizontal"-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:padding="5dp">-->
 
-            <EditText
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:inputType="textMultiLine"
-                android:ems="10"
-                style="@style/TextLogin"
-                android:lines="20"
-                android:scrollHorizontally="false"
-                android:scrollbars="vertical"
-                android:textSize="15sp"
-                android:id="@+id/etComentario" />
-        </LinearLayout>
+            <!--<TextView-->
+
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textAppearance="?android:attr/textAppearanceLarge"-->
+                <!--android:text="Si no es visible Indicar por que"-->
+                <!--android:id="@+id/tvComentario"-->
+                <!--android:textSize="@dimen/general"-->
+                <!--/>-->
+
+
+
+        <!--</LinearLayout>-->
+
+        <!--<LinearLayout-->
+            <!--android:orientation="horizontal"-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="196dp"-->
+            <!-->-->
+
+            <!--<EditText-->
+                <!--android:layout_width="fill_parent"-->
+                <!--android:layout_height="fill_parent"-->
+                <!--android:inputType="textMultiLine"-->
+                <!--android:ems="10"-->
+                <!--style="@style/TextLogin"-->
+                <!--android:lines="20"-->
+                <!--android:scrollHorizontally="false"-->
+                <!--android:scrollbars="vertical"-->
+                <!--android:textSize="15sp"-->
+                <!--android:id="@+id/etComentario" />-->
+        <!--</LinearLayout>-->
 
         <LinearLayout
             android:orientation="horizontal"

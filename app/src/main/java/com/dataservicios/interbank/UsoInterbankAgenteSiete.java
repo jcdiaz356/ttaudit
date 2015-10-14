@@ -11,9 +11,7 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -39,9 +37,9 @@ import app.AppController;
 import model.Encuesta;
 
 /**
- * Created by usuario on 07/04/2015.
+ * Created by usuario on 20/04/2015.
  */
-public class UsoInterbankAgenteSegundo extends Activity {
+public class UsoInterbankAgenteSiete extends Activity{
 
     private ProgressDialog pDialog;
     private int idCompany, idPDV, idRuta, idAuditoria,idUser,idPoll ;
@@ -54,11 +52,7 @@ public class UsoInterbankAgenteSegundo extends Activity {
     Button guardar , btPhoto;
     RadioGroup rgTipo;
     RadioButton rbSi,rbNo;
-    //EditText comentario;
-
-    LinearLayout ly_ChkSi ;
-    CheckBox cb_A,cb_B,cb_C ;
-    private String opciones="";
+    EditText comentario;
 
     // Database Helper
     private DatabaseHelper db;
@@ -67,8 +61,8 @@ public class UsoInterbankAgenteSegundo extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.inter_uso_interbank_agente_segundo);
-       // getActionBar().setDisplayHomeAsUpEnabled(true);
+        setContentView(R.layout.inter_uso_interbank_agente_siete);
+        // getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setTitle("Uso de Interbank Agente");
         overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left);
         db = new DatabaseHelper(getApplicationContext());
@@ -78,14 +72,8 @@ public class UsoInterbankAgenteSegundo extends Activity {
         rgTipo=(RadioGroup) findViewById(R.id.rgTipo);
         rbSi=(RadioButton) findViewById(R.id.rbSi);
         rbNo=(RadioButton) findViewById(R.id.rbNo);
-        //comentario = (EditText) findViewById(R.id.etComentario) ;
-        btPhoto =(Button) findViewById(R.id.btPhoto);
-
-        ly_ChkSi = (LinearLayout) findViewById(R.id.lyChkSi);
-        cb_A = (CheckBox) findViewById(R.id.cbA);
-        cb_B = (CheckBox) findViewById(R.id.cbB);
-        cb_C = (CheckBox) findViewById(R.id.cbC);
-
+        comentario = (EditText) findViewById(R.id.etComentario) ;
+       // btPhoto =(Button) findViewById(R.id.btPhoto);
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Cargando...");
@@ -122,26 +110,6 @@ public class UsoInterbankAgenteSegundo extends Activity {
         leerEncuesta();
 
 
-        btPhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                takePhoto();
-            }
-        });
-
-        enabledControl(false);
-        rgTipo.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if(checkedId == rbSi.getId()) {
-                    enabledControl(true);
-                }
-                if(checkedId == rbNo.getId()) {
-                    enabledControl(false);
-                }
-
-            }
-        });
 
         guardar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -166,23 +134,6 @@ public class UsoInterbankAgenteSegundo extends Activity {
                     }
                 }
 
-
-                String opcionA, opcionB , opcionC ;
-                opcionA ="";
-                opcionB ="";
-                opcionC = "";
-                if (cb_A.isChecked()){
-                    opcionA =  idPoll + "a|";
-                }
-                if (cb_B.isChecked()){
-                    opcionB =  idPoll + "b|";
-                }
-                if (cb_C.isChecked()){
-                    opcionC =  idPoll + "c|";
-                }
-                opciones = opcionA + opcionB + opcionC ;
-
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity);
                 builder.setTitle("Guardar Encuesta");
                 builder.setMessage("Está seguro de guardar todas las encuestas: ");
@@ -201,15 +152,14 @@ public class UsoInterbankAgenteSegundo extends Activity {
                             paramsData.put("idCompany", idCompany);
                             paramsData.put("idRuta", idRuta);
                             paramsData.put("sino", "1");
-                            paramsData.put("options", "1");
+                            paramsData.put("options", "0");
                             paramsData.put("limits", "0");
-                            paramsData.put("media", "1");
-                            paramsData.put("tipo", "1");
+                            paramsData.put("media", "0");
+                            paramsData.put("tipo", "0");
                             paramsData.put("coment", "0");
-                            paramsData.put("opcion",opciones );
                             paramsData.put("result", result);
-                            paramsData.put("status", "0");
-                            paramsData.put("comentario", "");
+                            paramsData.put("status", "1");
+                            //paramsData.put("comentario", comentario.getText());
                             //params.put("id_pdv",idPDV);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -238,11 +188,10 @@ public class UsoInterbankAgenteSegundo extends Activity {
     }
     private void leerEncuesta() {
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(43);
+            Encuesta encuesta = db.getEncuesta(69);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());
-            idPoll= encuesta.getId();
             //}
         }
     }
@@ -319,17 +268,17 @@ public class UsoInterbankAgenteSegundo extends Activity {
                                 toast.show();
                                 //onBackPressed();
 
-                                Bundle argRuta = new Bundle();
-                                argRuta.clear();
-                                argRuta.putInt("company_id",idCompany);
-                                argRuta.putInt("idPDV",idPDV);
-                                argRuta.putInt("idRuta", idRuta );
-
-                                argRuta.putInt("idAuditoria",idAuditoria);
-                                Intent intent;
-                                intent = new Intent("com.dataservicios.systemauditor.USOIBKTERCERO");
-                                intent.putExtras(argRuta);
-                                startActivity(intent);
+//                                Bundle argRuta = new Bundle();
+//                                argRuta.clear();
+//                                argRuta.putInt("company_id",idCompany);
+//                                argRuta.putInt("idPDV",idPDV);
+//                                argRuta.putInt("idRuta", idRuta );
+//
+//                                argRuta.putInt("idAuditoria",idAuditoria);
+//                                Intent intent;
+//                                intent = new Intent("com.dataservicios.systemauditor.USOIBKTERCERO");
+//                                intent.putExtras(argRuta);
+//                                startActivity(intent);
                                 finish();
 
                             }
@@ -397,7 +346,7 @@ public class UsoInterbankAgenteSegundo extends Activity {
         }
         //return super.onOptionsItemSelected(item);
     }
-        @Override
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             //preventing default implementation previous to android.os.Build.VERSION_CODES.ECLAIR
@@ -413,21 +362,4 @@ public class UsoInterbankAgenteSegundo extends Activity {
 //        overridePendingTransition(R.anim.anim_slide_in_right,R.anim.anim_slide_out_right);
     }
 
-    private void enabledControl(boolean state){
-        if (state) {
-            ly_ChkSi.setVisibility(View.VISIBLE);
-            cb_A.setChecked(false);
-            cb_B.setChecked(false);
-            cb_C.setChecked(false);
-
-
-        } else {
-            ly_ChkSi.setVisibility(View.INVISIBLE);
-            cb_A.setChecked(false);
-            cb_B.setChecked(false);
-            cb_C.setChecked(false);
-
-        }
-
-    }
 }

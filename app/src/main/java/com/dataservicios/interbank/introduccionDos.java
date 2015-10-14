@@ -10,8 +10,10 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -20,7 +22,10 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
+import com.dataservicios.systemauditor.AndroidCustomGalleryActivity;
 import com.dataservicios.systemauditor.R;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,23 +34,28 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 import app.AppController;
+import model.Encuesta;
 
 /**
  * Created by usuario on 09/04/2015.
  */
 public class introduccionDos extends Activity {
     private ProgressDialog pDialog;
-    private int idCompany, idPDV, idRuta, idAuditoria,idUser ;
+    private int idCompany, idPDV, idRuta, idAuditoria,idUser,idPoll ;
     private JSONObject params;
     private SessionManager session;
-    private String email_user, name_user;
+    private String email_user, name_user , opciones;
     private  int result;
     Activity MyActivity = (Activity) this;
     TextView pregunta ;
-    Button guardar;
-    RadioGroup rgTipo;
-    RadioButton rbSi,rbNo;
-    EditText comentario;
+    Button guardar, btPhoto;
+
+    RadioGroup rgTipo, rg_Options;
+    RadioButton rbSi,rbNo , rb_A, rb_B, rb_C;
+   // EditText comentario;
+    TextView tvComentario;
+
+    private DatabaseHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,11 +66,22 @@ public class introduccionDos extends Activity {
         getActionBar().setTitle("Introducción");
         overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left);
 
+        db = new DatabaseHelper(getApplicationContext());
+
         pregunta = (TextView) findViewById(R.id.tvPregunta);
         guardar = (Button) findViewById(R.id.btGuardar);
+        btPhoto =(Button) findViewById(R.id.btPhoto);
         rgTipo=(RadioGroup) findViewById(R.id.rgTipo);
+        rg_Options = (RadioGroup) findViewById(R.id.rgOptions);
+        rb_A = (RadioButton) findViewById(R.id.rbA);
+        rb_B = (RadioButton) findViewById(R.id.rbB);
+        rb_C = (RadioButton) findViewById(R.id.rbC);
         rbSi=(RadioButton) findViewById(R.id.rbSi);
         rbNo=(RadioButton) findViewById(R.id.rbNo);
+
+        //tvComentario = (TextView) findViewById(R.id.tvComentario);
+        opciones ="";
+
        // comentario = (EditText) findViewById(R.id.etComentario) ;
 //        pregunta.setText("Hoa");
 //        pregunta.setTag("145");
@@ -100,7 +121,52 @@ public class introduccionDos extends Activity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        leerPreguntasEncuesta(params);
+        leerEncuesta();
+
+        enabledControl(false);
+        rgTipo.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
+        {
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                // checkedId is the RadioButton selected
+                RadioButton rb=(RadioButton)findViewById(checkedId);
+                if (rbSi.getId()==checkedId){
+
+                    enabledControl(false);
+
+                } else if (rbNo.getId()==checkedId) {
+
+                    //tvComentario.setVisibility(View.VISIBLE);
+                    enabledControl(true);
+//
+                }
+
+
+            }
+        });
+
+       rg_Options.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+           @Override
+           public void onCheckedChanged(RadioGroup group, int checkedId) {
+               RadioButton rb=(RadioButton)findViewById(checkedId);
+
+               if (rb_A.getId()==checkedId){
+                  opciones = String.valueOf(idPoll)  + "A";
+               }
+               if (rb_B.getId()==checkedId){
+                   opciones = String.valueOf(idPoll)  + "B";
+               }
+               if (rb_B.getId()==checkedId){
+                   opciones = String.valueOf(idPoll)  + "C";
+               }
+           }
+       });
+
+        btPhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                takePhoto();
+            }
+        });
         guardar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -118,8 +184,10 @@ public class introduccionDos extends Activity {
                     if (id == rbSi.getId()){
                         //Do something with the button
                         result = 1;
+
                     } else if(id == rbNo.getId()){
                         result = 0;
+
                     }
                 }
 
@@ -141,18 +209,21 @@ public class introduccionDos extends Activity {
                             paramsData.put("idCompany", idCompany);
                             paramsData.put("idRuta", idRuta);
                             paramsData.put("sino", "1");
-                            paramsData.put("options", "0");
+                            paramsData.put("options", "1");
                             paramsData.put("limits", "0");
-                            paramsData.put("media", "0");
+                            paramsData.put("media", "1");
                             paramsData.put("coment", "0");
+                            paramsData.put("comentario", "");
+                            paramsData.put("opcion", opciones);
                             paramsData.put("result", result);
                             if(result==0){
                                 paramsData.put("status", "1");
+                                GlobalConstant.global_close_audit=1;
                             } else if(result==1){
                                 paramsData.put("status", "0");
                             }
 
-                            paramsData.put("comentario", "");
+
                             //params.put("id_pdv",idPDV);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -176,10 +247,37 @@ public class introduccionDos extends Activity {
         });
 
     }
+    // Camera
+    private void takePhoto() {
+        /*Intent intent = new Intent((MediaStore.ACTION_IMAGE_CAPTURE));
+        intent.putExtra(MediaStore.EXTRA_OUTPUT,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI.toString());
+
+        startActivityForResult(intent, 100);
+        */
+
+        //Bundle bundle = getIntent().getExtras();
+        //String id_agente = bundle.getString(TAG_ID);
+
+        // getting values from selected ListItem
+        // String aid = id_agente;
+        // Starting new intent
+        Intent i = new Intent( MyActivity, AndroidCustomGalleryActivity.class);
+        Bundle bolsa = new Bundle();
+        bolsa.putString("idPDV",String.valueOf(idPDV));
+        bolsa.putString("idPoll",String.valueOf(idPoll));
+        bolsa.putString("tipo","1");
+
+
+        i.putExtras(bolsa);
+        startActivity(i);
+
+
+    }
 
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -199,6 +297,7 @@ public class introduccionDos extends Activity {
                                // onBackPressed();
 
                                 if(result==0){
+                                    GlobalConstant.global_close_audit=1;
                                     finish();
                                 } else if(result==1){
                                     Bundle argRuta = new Bundle();
@@ -271,12 +370,21 @@ public class introduccionDos extends Activity {
 //
 //        overridePendingTransition(R.anim.anim_slide_in_right,R.anim.anim_slide_out_right);
     }
-
+    private void leerEncuesta() {
+        if(db.getEncuestaCount()>0) {
+            Encuesta encuesta = db.getEncuesta(67);
+            //if (idPregunta.equals("2")  ){
+            pregunta.setText(encuesta.getQuestion());
+            pregunta.setTag(encuesta.getId());
+            idPoll=encuesta.getId();
+            //}
+        }
+    }
 
     //Lee las preguntas del servidor para mostralo en la inteface
     private void leerPreguntasEncuesta(JSONObject  params){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -323,4 +431,26 @@ public class introduccionDos extends Activity {
         AppController.getInstance().addToRequestQueue(jsObjRequest);
 
     }
+
+
+
+    private void enabledControl(boolean state){
+        if (state) {
+            rg_Options.setVisibility(View.VISIBLE);
+            rg_Options.setEnabled(true);
+            rb_A.setChecked(false);
+            rb_B.setChecked(false);
+            rb_C.setChecked(false);
+
+        } else {
+            rg_Options.setVisibility(View.INVISIBLE);
+            rg_Options.setEnabled(false);
+            rb_A.setChecked(false);
+            rb_B.setChecked(false);
+            rb_C.setChecked(false);
+
+        }
+
+    }
+
 }

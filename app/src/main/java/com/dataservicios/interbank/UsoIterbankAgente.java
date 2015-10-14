@@ -12,7 +12,9 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -22,6 +24,8 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.AndroidCustomGalleryActivity;
 import com.dataservicios.systemauditor.R;
@@ -33,6 +37,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 import app.AppController;
+import model.Encuesta;
 
 /**
  * Created by usuario on 30/03/2015.
@@ -54,6 +59,11 @@ public class UsoIterbankAgente extends Activity {
     RadioButton rbSi,rbNo;
     EditText comentario;
 
+    LinearLayout ly_ChkSi ;
+    CheckBox cb_A,cb_B,cb_C,cb_D,cb_E ;
+    private String opciones="";
+
+    private DatabaseHelper db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +73,7 @@ public class UsoIterbankAgente extends Activity {
         getActionBar().setTitle("Uso de Interbank Agente");
         overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left);
 
+        db = new DatabaseHelper(getApplicationContext());
 
         pregunta = (TextView) findViewById(R.id.tvPregunta);
         guardar = (Button) findViewById(R.id.btGuardar);
@@ -70,7 +81,14 @@ public class UsoIterbankAgente extends Activity {
         rgTipo=(RadioGroup) findViewById(R.id.rgTipo);
         rbSi=(RadioButton) findViewById(R.id.rbSi);
         rbNo=(RadioButton) findViewById(R.id.rbNo);
+        ly_ChkSi = (LinearLayout) findViewById(R.id.lyChkSi);
+        cb_A = (CheckBox) findViewById(R.id.cbA);
+        cb_B = (CheckBox) findViewById(R.id.cbB);
+        cb_C = (CheckBox) findViewById(R.id.cbC);
+        cb_D = (CheckBox) findViewById(R.id.cbD);
+        cb_E = (CheckBox) findViewById(R.id.cbE);
 
+        enabledControl(false);
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Cargando...");
@@ -103,13 +121,26 @@ public class UsoIterbankAgente extends Activity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
+        db.deleteAllEncuesta();
         leerPreguntasEncuesta(params);
 
         btPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 takePhoto();
+            }
+        });
+
+        rgTipo.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if(checkedId == rbSi.getId()) {
+                    enabledControl(true);
+                }
+                if(checkedId == rbNo.getId()) {
+                    enabledControl(false);
+                }
+
             }
         });
 
@@ -131,10 +162,36 @@ public class UsoIterbankAgente extends Activity {
                     if (id == rbSi.getId()){
                         //Do something with the button
                         result = 1;
+                       // enabledControl(true);
                     } else if(id == rbNo.getId()){
                         result = 0;
+                       // enabledControl(false);
                     }
                 }
+                String opcionA, opcionB , opcionC, opcionD, opcionE ;
+                opcionA ="";
+                opcionB ="";
+                opcionC = "";
+                opcionD = "";
+                opcionE = "";
+
+                if (cb_A.isChecked()){
+                    opcionA =  idPoll + "a|";
+                }
+                if (cb_B.isChecked()){
+                    opcionB =  idPoll + "b|";
+                }
+                if (cb_C.isChecked()){
+                    opcionC =  idPoll + "c|";
+                }
+                if (cb_D.isChecked()){
+                    opcionD =  idPoll + "d|";
+                }
+                if (cb_E.isChecked()){
+                    opcionE =  idPoll + "e|";
+                }
+
+                opciones = opcionA + opcionB + opcionC + opcionD + opcionE ;
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity);
                 builder.setTitle("Guardar Encuesta");
@@ -154,12 +211,13 @@ public class UsoIterbankAgente extends Activity {
                             paramsData.put("idCompany", idCompany);
                             paramsData.put("idRuta", idRuta);
                             paramsData.put("sino", "1");
-                            paramsData.put("options", "0");
+                            paramsData.put("options", "1");
                             paramsData.put("limits", "0");
                             //paramsData.put("tipo", "1");
                             paramsData.put("media", "1");
                             paramsData.put("coment", "0");
                             paramsData.put("result", result);
+                            paramsData.put("opcion",opciones );
                             paramsData.put("status", "0");
                             paramsData.put("comentario", "");
                             //params.put("id_pdv",idPDV);
@@ -191,7 +249,7 @@ public class UsoIterbankAgente extends Activity {
 
     private void leerPreguntasEncuesta(JSONObject  paramsData){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -212,16 +270,23 @@ public class UsoIterbankAgente extends Activity {
                                     // Storing each json item in variable
                                     String idPregunta = obj.getString("id");
                                     String question = obj.getString("question");
+
+                                    Encuesta encuesta = new Encuesta();
+                                    encuesta.setId(Integer.valueOf(obj.getString("id")));
+                                    encuesta.setQuestion(obj.getString("question"));
+                                    db.createEncuesta(encuesta);
+
                                     // int status = obj.getInt("state");
-                                    if (idPregunta.equals("2")  ){
-                                        idPoll= Integer.valueOf(idPregunta);
-                                        pregunta.setText(question);
-                                        pregunta.setTag(idPregunta);
-                                    }
+//                                    if (idPregunta.equals("2")  ){
+//                                        idPoll= Integer.valueOf(idPregunta);
+//                                        pregunta.setText(question);
+//                                        pregunta.setTag(idPregunta);
+//                                    }
 
 
                                 }
                             }
+                            leerEncuesta();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -241,9 +306,21 @@ public class UsoIterbankAgente extends Activity {
 
     }
 
+
+    private void leerEncuesta() {
+        if(db.getEncuestaCount()>0) {
+            Encuesta encuesta = db.getEncuesta(42);
+            //if (idPregunta.equals("2")  ){
+            pregunta.setText(encuesta.getQuestion());
+            pregunta.setTag(encuesta.getId());
+            idPoll=encuesta.getId();
+            //}
+        }
+    }
+
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST ,  GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -358,5 +435,26 @@ public class UsoIterbankAgente extends Activity {
         this.finish();
 
         overridePendingTransition(R.anim.anim_slide_in_right,R.anim.anim_slide_out_right);
+    }
+
+
+    private void enabledControl(boolean state){
+        if (state) {
+            ly_ChkSi.setVisibility(View.VISIBLE);
+            cb_A.setChecked(false);
+            cb_B.setChecked(false);
+            cb_C.setChecked(false);
+            cb_D.setChecked(false);
+            cb_E.setChecked(false);
+
+        } else {
+            ly_ChkSi.setVisibility(View.INVISIBLE);
+            cb_A.setChecked(false);
+            cb_B.setChecked(false);
+            cb_C.setChecked(false);
+            cb_D.setChecked(false);
+            cb_E.setChecked(false);
+        }
+
     }
 }

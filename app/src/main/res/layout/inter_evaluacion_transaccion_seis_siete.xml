@@ -28,39 +28,37 @@
                 android:text=""
                 android:id="@+id/tvPregunta" />
         </LinearLayout>
-        <!--<LinearLayout-->
-            <!--android:orientation="vertical"-->
-            <!--android:layout_width="fill_parent"-->
-            <!--android:layout_height="fill_parent"-->
-            <!-->-->
-            <!--<Button-->
-                <!--android:id="@+id/btPhoto"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:drawableBottom="@drawable/ic_photo"-->
-                <!--android:layout_below="@+id/widget110"-->
-                <!--android:background="@android:color/transparent"-->
-                <!--android:layout_gravity="center" />-->
-        <!--</LinearLayout>-->
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="fill_parent"
-            android:layout_height="196dp"
-            >
+            android:layout_height="wrap_content"
+            android:padding="5dp">
 
-            <EditText
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:inputType="textMultiLine"
-                android:ems="10"
-                style="@style/TextLogin"
-                android:lines="20"
-                android:scrollHorizontally="false"
-                android:scrollbars="vertical"
-                android:textSize="15sp"
-                android:id="@+id/etComentario" />
+            <RadioGroup
+                android:id="@+id/rgTipo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_alignParentLeft="true"
+                android:layout_above="@+id/fbplacename"
+                android:visibility="visible"
+                android:clickable="true">
+
+                <RadioButton
+                    android:id="@+id/rbSi"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="SI" />
+
+                <RadioButton
+                    android:id="@+id/rbNo"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="NO" />
+            </RadioGroup>
         </LinearLayout>
-
 
         <LinearLayout
             android:orientation="horizontal"
@@ -80,3 +78,4 @@
 
     </LinearLayout>
 </ScrollView>
+

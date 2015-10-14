@@ -85,6 +85,8 @@ public class DetallePdv extends FragmentActivity {
     Activity MyActivity = (Activity) this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detalle_pdv);
         getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -137,6 +139,11 @@ public class DetallePdv extends FragmentActivity {
 //                //Toast.makeText(MyActivity,"Lat: " + lat + "\nLon: " + lon, Toast.LENGTH_SHORT).show();
 //            }
 //        });
+
+        pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Cargando...");
+        pDialog.setCancelable(false);
+
 
         btGuardarLatLong.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -212,9 +219,7 @@ public class DetallePdv extends FragmentActivity {
             }
         });
 
-        pDialog = new ProgressDialog(this);
-        pDialog.setMessage("Cargando...");
-        pDialog.setCancelable(false);
+
 
         linearLayout = (ViewGroup) findViewById(R.id.lyControles);
 //        Button MyBoton = (Button) findViewById(R.id.button1);
@@ -235,6 +240,12 @@ public class DetallePdv extends FragmentActivity {
         fechaRuta= bundle.getString("fechaRuta");
         tvPDVSdelDía.setText(fechaRuta);
 
+
+
+
+
+
+
         try {
             params.put("id", idPDV);
             params.put("idRoute", IdRuta);
@@ -251,7 +262,31 @@ public class DetallePdv extends FragmentActivity {
         cargarAditoriasInterbank();
         //cargaAuditorias();
         //cargarAditoriasDeMuestra();
+
+
+//        if(GlobalConstant.global_close_audit==1){
+//            GlobalConstant.global_close_audit=0;
+//            JSONObject paramsCloseAudit = new JSONObject();
+//            try {
+//                paramsCloseAudit.put("latitud_close", lat);
+//                paramsCloseAudit.put("longitud_close", lon);
+//                paramsCloseAudit.put("latitud_open", GlobalConstant.latitude_open);
+//                paramsCloseAudit.put("longitud_open",  GlobalConstant.latitude_open);
+//                paramsCloseAudit.put("tiempo_inicio",  GlobalConstant.inicio);
+//                paramsCloseAudit.put("tiempo_fin",  GlobalConstant.fin);
+//                paramsCloseAudit.put("tduser", id_user);
+//                paramsCloseAudit.put("id", idPDV);
+//                paramsCloseAudit.put("idruta", IdRuta);
+//                insertaTiemporAuditoria(paramsCloseAudit);
+//
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
     }
+
+
     private void comenzarLocalizacion()
     {
         //Obtenemos una referencia al LocationManager
@@ -343,7 +378,7 @@ public class DetallePdv extends FragmentActivity {
     }
     private void cargaPdvs(){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonRoadDetail" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonRoadDetail" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -425,7 +460,7 @@ public class DetallePdv extends FragmentActivity {
 
     private void cargaAuditorias(){
 //        showpDialog();
-        JsonArrayRequest rutaReq = new JsonArrayRequest("http://www.dataservicios.com/webservice/auditorias.php",
+        JsonArrayRequest rutaReq = new JsonArrayRequest(GlobalConstant.dominio + "/webservice/auditorias.php",
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
@@ -506,7 +541,7 @@ public class DetallePdv extends FragmentActivity {
 
     private void cargarAditoriasPrueba(){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonAuditsForStore" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonAuditsForStore" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -623,7 +658,7 @@ public class DetallePdv extends FragmentActivity {
 
     private void cargarAditoriasInterbank(){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonAuditsForStore" ,params,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST ,  GlobalConstant.dominio + "/JsonAuditsForStore" ,params,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -671,6 +706,12 @@ public class DetallePdv extends FragmentActivity {
                                         Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_off);
                                         img.setBounds( 0, 0, 60, 60 );  // set the image size
                                         bt.setCompoundDrawables( img, null, null, null );
+                                    }
+                                    if(GlobalConstant.global_close_audit==1){
+
+                                        bt.setBackgroundColor(getResources().getColor(R.color.color_bottom_buttom_pressed));
+                                        bt.setTextColor(getResources().getColor(R.color.color_base));
+                                        bt.setEnabled(false);
                                     }
                                     //bt.setBackground();
                                     bt.setId(Integer.valueOf(idAuditoria));
@@ -738,6 +779,7 @@ public class DetallePdv extends FragmentActivity {
                                     ly.addView(bt);
                                     linearLayout.addView(ly);
                                 }
+                                GlobalConstant.global_close_audit=0;
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -870,7 +912,7 @@ public class DetallePdv extends FragmentActivity {
         showpDialog();
 
 
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/updatePositionStore" ,paramsCordenadas,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio+"/updatePositionStore" ,paramsCordenadas,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -920,7 +962,7 @@ public class DetallePdv extends FragmentActivity {
 
     private void insertaTiemporAuditoria(JSONObject parametros) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/insertaTiempo" ,parametros,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/insertaTiempo" ,parametros,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -934,7 +976,7 @@ public class DetallePdv extends FragmentActivity {
                             if (success == 1) {
 //
                                 Log.d("DATAAAA", response.toString());
-                                Toast.makeText(MyActivity, "Se actualizo su visita", Toast.LENGTH_LONG).show();
+                                Toast.makeText(MyActivity, "Se ", Toast.LENGTH_LONG).show();
                                 finish();
                             } else {
                                 Toast.makeText(MyActivity, "No se ha podido enviar la información, intentelo mas tarde ",Toast.LENGTH_LONG).show();

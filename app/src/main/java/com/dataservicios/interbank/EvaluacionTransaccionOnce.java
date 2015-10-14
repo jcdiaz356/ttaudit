@@ -22,6 +22,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.SQLite.DatabaseHelper;
+import com.dataservicios.librerias.GlobalConstant;
 import com.dataservicios.librerias.SessionManager;
 import com.dataservicios.systemauditor.R;
 
@@ -181,11 +182,13 @@ public class EvaluacionTransaccionOnce  extends Activity {
                             paramsData.put("options", "1");
                             paramsData.put("limits", "0");
                             paramsData.put("media", "0");
-                            paramsData.put("coment", "1");
+                            paramsData.put("coment", "0");
+                            paramsData.put("coment_options", "1");
                             paramsData.put("result", result);
                             paramsData.put("status", "1");
                             paramsData.put("opcion", pregunta.getTag().toString()+opciones.toString());
-                            paramsData.put("comentario", comentario.getText());
+                            paramsData.put("comentario", "");
+                            paramsData.put("comentario_options", comentario.getText());
                             //params.put("id_pdv",idPDV);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -216,7 +219,7 @@ public class EvaluacionTransaccionOnce  extends Activity {
     private void leerEncuesta() {
 
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(25);
+            Encuesta encuesta = db.getEncuesta(65);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());
@@ -227,7 +230,7 @@ public class EvaluacionTransaccionOnce  extends Activity {
 
     private void cargarPreguntasEncuesta(JSONObject  paramsData){
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonGetQuestions" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -285,7 +288,7 @@ public class EvaluacionTransaccionOnce  extends Activity {
 
     private void insertaEncuesta(JSONObject paramsData) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , "http://ttaudit.com/JsonInsertAuditPolls" ,paramsData,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonInsertAuditPolls" ,paramsData,
                 new Response.Listener<JSONObject>()
                 {
                     @Override

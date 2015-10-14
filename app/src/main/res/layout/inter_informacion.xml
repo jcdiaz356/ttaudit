@@ -125,6 +125,12 @@
             android:text="Porque los clientes lo solicitan"
             android:padding="5dp"
             android:id="@+id/cbF" />
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Otros"
+                android:padding="5dp"
+                android:id="@+id/cbG" />
 
 
 
@@ -141,21 +147,27 @@
                 android:layout_height="wrap_content"
                 android:text="Seguridad"
                 android:padding="5dp"
-                android:id="@+id/cbG" />
+                android:id="@+id/cbH" />
 
             <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Perdida de tiempo"
                 android:padding="5dp"
-                android:id="@+id/cbH" />
+                android:id="@+id/cbI" />
 
             <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Las comisiones son bajas"
                 android:padding="5dp"
-                android:id="@+id/cbI" />
+                android:id="@+id/cbJ" />
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Otros"
+                android:padding="5dp"
+                android:id="@+id/cbK" />
 
 
         </LinearLayout>
