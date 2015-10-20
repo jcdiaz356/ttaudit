@@ -2,16 +2,21 @@ package com.dataservicios.systemauditor;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+
 public class MainActivity extends Activity {
     private int splashTime = 3000;
     private Thread thread;
     private ProgressBar mSpinner;
+    private TextView tv_version ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -21,6 +26,20 @@ public class MainActivity extends Activity {
         mSpinner.setIndeterminate(true);
         thread = new Thread(runable);
         thread.start();
+
+
+        tv_version = (TextView) findViewById(R.id.tvVersion);
+
+        PackageInfo pinfo;
+        try {
+            pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String versionName = pinfo.versionName;
+            tv_version.setText("Ver. " + versionName);
+            //ET2.setText(versionNumber);
+        } catch (PackageManager.NameNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public Runnable runable = new Runnable() {

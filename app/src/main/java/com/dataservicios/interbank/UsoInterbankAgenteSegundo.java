@@ -148,39 +148,7 @@ public class UsoInterbankAgenteSegundo extends Activity {
             public void onClick(View v) {
 
 
-                long id = rgTipo.getCheckedRadioButtonId();
-                if (id == -1){
-                    //no item selected
-                    //valor ="";
-                    Toast toast;
-                    toast = Toast.makeText(MyActivity,"Debe seleccionar una opción" , Toast.LENGTH_LONG);
-                    toast.show();
-                    return;
-                }
-                else{
-                    if (id == rbSi.getId()){
-                        //Do something with the button
-                        result = 1;
-                    } else if(id == rbNo.getId()){
-                        result = 0;
-                    }
-                }
 
-
-                String opcionA, opcionB , opcionC ;
-                opcionA ="";
-                opcionB ="";
-                opcionC = "";
-                if (cb_A.isChecked()){
-                    opcionA =  idPoll + "a|";
-                }
-                if (cb_B.isChecked()){
-                    opcionB =  idPoll + "b|";
-                }
-                if (cb_C.isChecked()){
-                    opcionC =  idPoll + "c|";
-                }
-                opciones = opcionA + opcionB + opcionC ;
 
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity);
@@ -192,6 +160,60 @@ public class UsoInterbankAgenteSegundo extends Activity {
                     @Override
                     public void onClick(DialogInterface dialog, int which)
                     {
+                        String opcionA, opcionB , opcionC ;
+                        opcionA ="";
+                        opcionB ="";
+                        opcionC = "";
+                        boolean selected = false ;
+
+                        long id = rgTipo.getCheckedRadioButtonId();
+                        if (id == -1){
+                            //no item selected
+                            //valor ="";
+                            Toast toast;
+                            toast = Toast.makeText(MyActivity,"Debe seleccionar una opción" , Toast.LENGTH_LONG);
+                            toast.show();
+                            return;
+                        }
+                        else{
+                            if (id == rbSi.getId()){
+                                //Do something with the button
+
+
+                                if (cb_A.isChecked()){
+                                    selected = true;
+                                    opcionA =  idPoll + "a|";
+                                }
+                                if (cb_B.isChecked()){
+                                    selected = true;
+                                    opcionB =  idPoll + "b|";
+                                }
+                                if (cb_C.isChecked()){
+                                    selected = true;
+                                    opcionC =  idPoll + "c|";
+                                }
+                                opciones = opcionA + opcionB + opcionC ;
+                                result = 1;
+
+                                if (!selected){
+                                    Toast toast;
+                                    toast = Toast.makeText(MyActivity,"Debe marcar una opción" , Toast.LENGTH_LONG);
+                                    toast.show();
+                                    return;
+                                }
+
+
+                            } else if(id == rbNo.getId()){
+                                result = 0;
+                            }
+                        }
+
+
+
+
+
+
+
                         JSONObject paramsData;
                         paramsData = new JSONObject();
                         try {

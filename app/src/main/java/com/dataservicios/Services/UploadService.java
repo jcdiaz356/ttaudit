@@ -16,6 +16,7 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import com.dataservicios.librerias.AndroidMultiPartEntity;
 import com.dataservicios.librerias.GlobalConstant;
+import com.dataservicios.librerias.JSONParser;
 import com.dataservicios.systemauditor.AlbumStorageDirFactory;
 import com.dataservicios.systemauditor.BaseAlbumDirFactory;
 import com.dataservicios.systemauditor.FroyoAlbumDirFactory;
@@ -36,6 +37,9 @@ import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreProtocolPNames;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -79,7 +83,9 @@ public class UploadService extends IntentService{
         idPoll=intent.getStringExtra("idPoll");
         tipo=intent.getStringExtra("tipo");
         //Log.i("FOO", uri.toString());
-        new ServerUpdate().execute(names);
+        //new ServerUpdate().execute(names);
+        new loadInsert().execute(names);
+
     }
     class ServerUpdate extends AsyncTask<ArrayList<String>,String,String> {
         //ProgressDialog pDialog;
@@ -90,19 +96,18 @@ public class UploadService extends IntentService{
             //uri=arg0[0];
             for (int i = 0; i < arg0[0].size(); i++) {
                 String foto = arg0[0].get(i);
-                if (uploadFoto(getAlbumDir().getAbsolutePath() + "/" + foto) && onInsert(foto)) {
-                    File file = new File(getAlbumDir().getAbsolutePath() + "/" + foto);
-                    file.delete();
-                }
-
-//                if (uploadFoto(getAlbumDir().getAbsolutePath() + "/" + foto) ) {
+//                if (uploadFoto(getAlbumDir().getAbsolutePath() + "/" + foto) && onInsert(foto)) {
 //                    File file = new File(getAlbumDir().getAbsolutePath() + "/" + foto);
 //                    file.delete();
 //                }
+
+                if (uploadFoto(getAlbumDirTemp().getAbsolutePath() + "/" + foto) ) {
+                    File file = new File(getAlbumDirTemp().getAbsolutePath() + "/" + foto);
+                    file.delete();
+                }
+//
             }
            return null;
-
-
 //            final HttpResponse resp;
 //            final HttpClient httpClient = new DefaultHttpClient();
 //            HttpPost httppost = new HttpPost("http://192.168.1.45/file/upload.php");
@@ -161,6 +166,35 @@ public class UploadService extends IntentService{
         }
     }
 
+
+    class loadInsert extends AsyncTask<ArrayList<String>, Integer , Boolean> {
+        /**
+         * Antes de comenzar en el hilo determinado, Mostrar progresión
+         * */
+        boolean failure = false;
+        @Override
+        protected void onPreExecute() {
+
+            super.onPreExecute();
+        }
+        @Override
+        protected Boolean doInBackground(ArrayList<String>... arg0) {
+            // TODO Auto-generated method stub
+            //cargaTipoPedido();
+            for (int i = 0; i < arg0[0].size(); i++) {
+                String foto = arg0[0].get(i);
+                onInsert(foto);
+            }
+            return true;
+        }
+        /**
+         * After completing background task Dismiss the progress dialog
+         * **/
+        protected void onPostExecute(Boolean result) {
+            // dismiss the dialog once product deleted
+            new ServerUpdate().execute(names);
+        }
+    }
 
     //Metodo que escala la imágen
     public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
@@ -248,6 +282,10 @@ public class UploadService extends IntentService{
     private String getAlbumName() {
         return getString(R.string.album_name);
     }
+
+    private String getAlbunNameTemp(){
+        return  getString(R.string.album_name_temp);
+    }
     private File getAlbumDir() {
         File storageDir = null;
 
@@ -258,7 +296,7 @@ public class UploadService extends IntentService{
             if (storageDir != null) {
                 if (! storageDir.mkdirs()) {
                     if (! storageDir.exists()){
-                        Log.d("CameraSample", "failed to create directory");
+                        Log.d(getAlbumName(), "failed to create directory");
                         return null;
                     }
                 }
@@ -270,34 +308,57 @@ public class UploadService extends IntentService{
 
         return storageDir;
     }
-    private boolean onInsert(String imag_name){
-        HttpClient httpclient;
-        List<NameValuePair> nameValuePairs;
-        HttpPost httppost;
-        httpclient=new DefaultHttpClient();
-        httppost= new HttpPost(url_insert_image); // Url del Servidor
-        //Añadimos nuestros datos
-        nameValuePairs = new ArrayList<NameValuePair>(1);
 
+    private File getAlbumDirTemp() {
+        File storageDir = null;
 
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
 
-        nameValuePairs.add(new BasicNameValuePair("archivo",imag_name));
-        nameValuePairs.add(new BasicNameValuePair("store_id",idPDV));
-        nameValuePairs.add(new BasicNameValuePair("poll_id",idPoll));
-        nameValuePairs.add(new BasicNameValuePair("tipo",tipo));
-        //idPDV
+            storageDir = mAlbumStorageDirFactory.getAlbumStorageDir(getAlbunNameTemp());
 
+            if (storageDir != null) {
+                if (! storageDir.mkdirs()) {
+                    if (! storageDir.exists()){
+                        Log.d(getAlbunNameTemp(), "failed to create directory");
+                        return null;
+                    }
+                }
+            }
+
+        } else {
+            Log.v(getString(R.string.app_name), "External storage is not mounted READ/WRITE.");
+        }
+
+        return storageDir;
+    }
+    private boolean onInsert(String imag_name)  {
+
+        int success;
         try {
-            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-            httpclient.execute(httppost);
-            return true;
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+                nameValuePairs.add(new BasicNameValuePair("archivo",imag_name));
+                nameValuePairs.add(new BasicNameValuePair("store_id",idPDV));
+                nameValuePairs.add(new BasicNameValuePair("poll_id",idPoll));
+                nameValuePairs.add(new BasicNameValuePair("tipo",tipo));
+                JSONParser jsonParser = new JSONParser();
+                // getting product details by making HTTP request
+                JSONObject json = jsonParser.makeHttpRequest(url_insert_image,"POST", nameValuePairs);
+                // check your log for json response
+                Log.d("Login attempt", json.toString());
+                // json success, tag que retorna el json
+                success = json.getInt("success");
+                if (success == 1) {
+                    return  true;
+                }else{
+                    // Log.d(LOG_TAG, json.getString("message"));
+                    // return json.getString("message");
+                    return  false;
+                }
+
+        } catch (JSONException e) {
             e.printStackTrace();
         }
+
         return false;
     }
 }

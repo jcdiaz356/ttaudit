@@ -155,7 +155,7 @@ public class introduccionDos extends Activity {
                if (rb_B.getId()==checkedId){
                    opciones = String.valueOf(idPoll)  + "B";
                }
-               if (rb_B.getId()==checkedId){
+               if (rb_C.getId()==checkedId){
                    opciones = String.valueOf(idPoll)  + "C";
                }
            }
@@ -171,25 +171,7 @@ public class introduccionDos extends Activity {
             @Override
             public void onClick(View v) {
 
-                int id = rgTipo.getCheckedRadioButtonId();
-                if (id == -1){
-                    //no item selected
-                    //valor ="";
-                    Toast toast;
-                    toast = Toast.makeText(MyActivity,"Debe seleccionar una opción" , Toast.LENGTH_LONG);
-                    toast.show();
-                    return;
-                }
-                else{
-                    if (id == rbSi.getId()){
-                        //Do something with the button
-                        result = 1;
 
-                    } else if(id == rbNo.getId()){
-                        result = 0;
-
-                    }
-                }
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity);
                 builder.setTitle("Guardar Encuesta");
@@ -200,6 +182,42 @@ public class introduccionDos extends Activity {
                     @Override
                     public void onClick(DialogInterface dialog, int which)
                     {
+
+
+                        int id = rgTipo.getCheckedRadioButtonId();
+                        if (id == -1){
+                            //no item selected
+                            //valor ="";
+                            Toast toast;
+                            toast = Toast.makeText(MyActivity,"Debe seleccionar una opción" , Toast.LENGTH_LONG);
+                            toast.show();
+                            return;
+                        } else if(rbNo.getId()== id){
+                            int id2 = rg_Options.getCheckedRadioButtonId();
+                            if (id2 == -1){
+                                //no item selected
+                                //valor ="";
+                                Toast toast;
+                                toast = Toast.makeText(MyActivity,"Debe seleccionar una opción" , Toast.LENGTH_LONG);
+                                toast.show();
+                                return;
+                            }
+                        }
+
+
+
+                        else{
+                            if (id == rbSi.getId()){
+                                //Do something with the button
+                                result = 1;
+
+                            } else if(id == rbNo.getId()){
+                                result = 0;
+
+                            }
+                        }
+
+
                         JSONObject paramsData;
                         paramsData = new JSONObject();
                         try {

@@ -44,5 +44,7 @@
 
     <string name="descr_image">Image</string>
     <!--<string name="album_name">RedAgenteGlobalApp</string>-->
-    <string name="album_name">CameraSample</string>
+    <string name="album_name">ttaditPhoto</string>
+    <string name="album_name_temp">ttauditPhotoTemp</string>
+
 </resources>

@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +24,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.dataservicios.Services.UploadService;
@@ -44,6 +46,7 @@ import org.apache.http.params.CoreProtocolPNames;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +57,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+
+import adapter.ImageAdapter;
 
 /**
  * Created by user on 06/02/2015.
@@ -65,8 +71,8 @@ public class AndroidCustomGalleryActivity extends Activity {
     private String mCurrentPhotoPath;
     private static final String JPEG_FILE_PREFIX = "-Agente_foto_";
     private static final String JPEG_FILE_SUFFIX = ".jpg";
-    private static final String url_insert_image = "http://redagentesyglobalnet.com/insertImagesAgent";
-    private static final String url_upload_image = "http://redagentesyglobalnet.com/uploadImagesAgent";
+    //private static final String url_insert_image = "http://redagentesyglobalnet.com/insertImagesAgent";
+   // private static final String url_upload_image = "http://redagentesyglobalnet.com/uploadImagesAgent";
 
     private AlbumStorageDirFactory mAlbumStorageDirFactory = null;
     private ImageAdapter imageAdapter;
@@ -93,7 +99,7 @@ public class AndroidCustomGalleryActivity extends Activity {
         getFromSdcard();
 
         final GridView imagegrid = (GridView) findViewById(R.id.PhoneImageGrid);
-        imageAdapter = new ImageAdapter();
+        imageAdapter = new ImageAdapter(MyActivity,f);
         imagegrid.setAdapter(imageAdapter);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
@@ -123,6 +129,8 @@ public class AndroidCustomGalleryActivity extends Activity {
                 // to save picture remove comment
                 File file = new File(albumF,imageFileName+JPEG_FILE_SUFFIX);
 
+
+
                 Uri photoPath = Uri.fromFile(file);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, photoPath);
 
@@ -145,55 +153,114 @@ public class AndroidCustomGalleryActivity extends Activity {
 //                String tipo = bundle.getString("tipo");
 
 
+                File file= new File(Environment.getExternalStorageDirectory().toString()+"/Pictures/" + getAlbumName());
+                if (file.isDirectory()) {
 
-                File file= new File(Environment.getExternalStorageDirectory().toString()+"/Pictures/CameraSample");
+                    int position =0;
+                    int contador = 0;
+                    int holder_counter=0;
+                    names.clear();
 
-                if (file.isDirectory())
-                {
-                    listFile = file.listFiles();
-                    int holder_counter = 1;
-                    int contador=0;
-                    //Verificando si se ha seleccionado alguna foto
                     if (listFile.length>0){
-                        for (int i = 0; i < listFile.length; i++){
-                            if (imageAdapter.getItem(holder_counter).checkbox.isChecked())
-                            {
-                                contador ++;
+                        //for (int i = 0; i < listFile.length; i++){
+                            int total = imageAdapter.getCount();
+                            int count = imagegrid.getAdapter().getCount();
+
+                            for (int i = 0; i < count; i++) {
+
+                                LinearLayout itemLayout = (LinearLayout)imagegrid.getChildAt(i); // Find by under LinearLayout
+                                CheckBox checkbox = (CheckBox)itemLayout.findViewById(R.id.itemCheckBox);
+                                if(checkbox.isChecked())
+                                {
+                                    contador ++;
+                                   // Log.d("Item "+String.valueOf(i), checkbox.getTag().toString());
+                                    //Toast.makeText(MyActivity,checkbox.getTag().toString() ,Toast.LENGTH_LONG).show();
+
+                                    if (  listFile[i].getName().substring(0,6).equals(String.format("%06d", Integer.parseInt(idPDV)) )) {
+                                            String name = listFile[i].getName();
+                                            names.add(name);
+                                      //  holder_counter++;
+
+                                        try {
+                                            copyFile(getAlbumDir() + "/" + listFile[i].getName(), getAlbumDirTemp() + "/" + listFile[i].getName());
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                    listFile[i].delete();
+
+
+
+
+                                }
                             }
-                            holder_counter++;
-                        }
-                        if (contador==0){
-                            Toast toast;
-                            toast = Toast.makeText(MyActivity , "Debe Seleccionar almenos una imagen", Toast.LENGTH_SHORT);
-                            toast.show();
-                            return;
-                        }
-                    } else{
+
+                            if(contador > 0){
+
+                                Toast.makeText(MyActivity,"Seleccionó " +String.valueOf(contador) + " imágenes"  ,Toast.LENGTH_LONG).show();
+                            } else{
+                                Toast.makeText(MyActivity,"Debe selecionar una imagen"  ,Toast.LENGTH_LONG).show();
+                                return;
+                            }
+
+
+                        //return;
+
+                    } else {
+
                         Toast toast;
-                        toast = Toast.makeText(MyActivity , "No hay ninguna foto en la galeria", Toast.LENGTH_SHORT);
+                        toast = Toast.makeText(MyActivity , "No ha ninguna imagen", Toast.LENGTH_SHORT);
                         toast.show();
                         return;
                     }
 
-                    holder_counter=1;
-
-                    for (int i = 0; i < listFile.length; i++)
-                    {
-                        if (  listFile[i].getName().substring(0,6).equals(String.format("%06d", Integer.parseInt(idPDV)) ))
-                        {
-                            if (imageAdapter.getItem(holder_counter).checkbox.isChecked())
-                            {
-                                String name = listFile[i].getName();
-                                names.add(name);
-                            }
-                            holder_counter++;
-                        }
-                    }
                 }
-                //new ServerUpdate().execute(names);
 
-                //String foto = names.get(0);
-                //Uri uri = Uri.fromFile(new File(file +"/"+ foto) );
+
+//                if (file.isDirectory())
+//                {
+//                    listFile = file.listFiles();
+//                    int holder_counter = 1;
+//                    int contador=0;
+//                    //Verificando si se ha seleccionado alguna foto
+//                    if (listFile.length>0){
+//                        for (int i = 0; i < listFile.length; i++){
+//                            if (imageAdapter.getItem(holder_counter).checkbox.isChecked())
+//                            {
+//                                contador ++;
+//                            }
+//                            holder_counter++;
+//                        }
+//                        if (contador==0){
+//                            Toast toast;
+//                            toast = Toast.makeText(MyActivity , "Debe Seleccionar almenos una imagen", Toast.LENGTH_SHORT);
+//                            toast.show();
+//                            return;
+//                        }
+//                    } else{
+//                        Toast toast;
+//                        toast = Toast.makeText(MyActivity , "No hay ninguna foto en la galeria", Toast.LENGTH_SHORT);
+//                        toast.show();
+//                        return;
+//                    }
+//
+//                    holder_counter=1;
+//
+//                    for (int i = 0; i < listFile.length; i++)
+//                    {
+//                        if (  listFile[i].getName().substring(0,6).equals(String.format("%06d", Integer.parseInt(idPDV)) ))
+//                        {
+//                            if (imageAdapter.getItem(holder_counter).checkbox.isChecked())
+//                            {
+//                                String name = listFile[i].getName();
+//                                names.add(name);
+//                            }
+//                            holder_counter++;
+//                        }
+//                    }
+//                }
+
 
                 Intent intent = new Intent(MyActivity, UploadService.class);
                 //Log.i("FOO", uri.toString());
@@ -203,20 +270,9 @@ public class AndroidCustomGalleryActivity extends Activity {
                 argPDV.putString("tipo",tipo);
 
                 intent.putStringArrayListExtra("names", names);
-//                intent.putExtra("idPDV", idPDV);
-//               intent.putExtra("idPoll", idPoll);
-//               intent.putExtra("tipo", tipo);
                 intent.putExtras(argPDV);
-                //intent.set(names);
                 startService(intent);
-                // getting values from selected ListItem
-//                String aid = idPDV;
-//                // Starting new intent
-//                Intent i = new Intent( AndroidCustomGalleryActivity.this , AgenteDetailActivity.class);
-//                Bundle bolsa = new Bundle();
-//                bolsa.putString("id", aid);
-//                i.putExtras(bolsa);
-//                startActivity(i);
+
                 finish();
 
             }
@@ -268,32 +324,32 @@ public class AndroidCustomGalleryActivity extends Activity {
     }
 
 
-    private boolean onInsert(String imag_name){
-        Bundle bundle = getIntent().getExtras();
-        String idPDV = bundle.getString("idPDV");
-        HttpClient httpclient;
-        List<NameValuePair> nameValuePairs;
-        HttpPost httppost;
-        httpclient=new DefaultHttpClient();
-        httppost= new HttpPost(url_insert_image); // Url del Servidor
-        //Añadimos nuestros datos
-        nameValuePairs = new ArrayList<NameValuePair>(1);
-        nameValuePairs.add(new BasicNameValuePair("imagen",imag_name));
-        nameValuePairs.add(new BasicNameValuePair("idPDV",idPDV));
-
-        try {
-            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-            httpclient.execute(httppost);
-            return true;
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+//    private boolean onInsert(String imag_name){
+//        Bundle bundle = getIntent().getExtras();
+//        String idPDV = bundle.getString("idPDV");
+//        HttpClient httpclient;
+//        List<NameValuePair> nameValuePairs;
+//        HttpPost httppost;
+//        httpclient=new DefaultHttpClient();
+//        httppost= new HttpPost(url_insert_image); // Url del Servidor
+//        //Añadimos nuestros datos
+//        nameValuePairs = new ArrayList<NameValuePair>(1);
+//        nameValuePairs.add(new BasicNameValuePair("imagen",imag_name));
+//        nameValuePairs.add(new BasicNameValuePair("idPDV",idPDV));
+//
+//        try {
+//            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+//            httpclient.execute(httppost);
+//            return true;
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        } catch (ClientProtocolException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
 
 
 
@@ -303,6 +359,12 @@ public class AndroidCustomGalleryActivity extends Activity {
     private String getAlbumName() {
         return getString(R.string.album_name);
     }
+
+   private String getAlbunNameTemp(){
+       return  getString(R.string.album_name_temp);
+   }
+
+
 
     private File getAlbumDir() {
         File storageDir = null;
@@ -314,7 +376,30 @@ public class AndroidCustomGalleryActivity extends Activity {
             if (storageDir != null) {
                 if (! storageDir.mkdirs()) {
                     if (! storageDir.exists()){
-                        Log.d("CameraSample", "failed to create directory");
+                        Log.d(getAlbumName(), "failed to create directory");
+                        return null;
+                    }
+                }
+            }
+
+        } else {
+            Log.v(getString(R.string.app_name), "External storage is not mounted READ/WRITE.");
+        }
+
+        return storageDir;
+    }
+
+    private File getAlbumDirTemp() {
+        File storageDir = null;
+
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+
+            storageDir = mAlbumStorageDirFactory.getAlbumStorageDir(getAlbunNameTemp());
+
+            if (storageDir != null) {
+                if (! storageDir.mkdirs()) {
+                    if (! storageDir.exists()){
+                        Log.d(getAlbunNameTemp(), "failed to create directory");
                         return null;
                     }
                 }
@@ -372,14 +457,12 @@ public class AndroidCustomGalleryActivity extends Activity {
 
     }
 
-
-
     public void getFromSdcard()
     {
         Bundle bundle = getIntent().getExtras();
         String idPDV = bundle.getString("idPDV");
 
-        File file= new File(Environment.getExternalStorageDirectory().toString()+"/Pictures/CameraSample");
+        File file= new File(Environment.getExternalStorageDirectory().toString()+"/Pictures/" + getAlbumName() );
 
         if (file.isDirectory())
         {
@@ -396,56 +479,75 @@ public class AndroidCustomGalleryActivity extends Activity {
         }
     }
 
-    public class ImageAdapter extends BaseAdapter {
-        private LayoutInflater mInflater;
-        ArrayList<ViewHolder> holders = new ArrayList<ViewHolder>();
+//    public class ImageAdapter extends BaseAdapter {
+//        private LayoutInflater mInflater;
+//        ArrayList<ViewHolder> holders = new ArrayList<ViewHolder>();
+//
+//
+//        public ImageAdapter() {
+//            mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        }
+//
+//        public int getCount() {
+//            return f.size();
+//        }
+//
+//        public ViewHolder getItem(int position) {
+//            return holders.get(position);
+//        }
+//
+//        public long getItemId(int position) {
+//            return position;
+//        }
+//
+//        public View getView(int position, View convertView, ViewGroup parent) {
+//            ViewHolder holder;
+//            if (convertView == null) {
+//                holder = new ViewHolder();
+//                convertView = mInflater.inflate(
+//                        R.layout.galleryitem, null);
+//                holder.imageview = (ImageView) convertView.findViewById(R.id.thumbImage);
+//                holder.checkbox = (CheckBox) convertView.findViewById(R.id.itemCheckBox);
+//                convertView.setTag(holder);
+//            }
+//            else {
+//                holder = (ViewHolder) convertView.getTag();
+//            }
+//
+//            BitmapFactory.Options options = new BitmapFactory.Options();
+//            options.inSampleSize = 8;
+//            Bitmap myBitmap = BitmapFactory.decodeFile(f.get(position), options);
+//            Matrix matrix = new Matrix();
+//            matrix.postRotate(90);
+//            Bitmap myBitmap1 =  Bitmap.createBitmap(myBitmap, 0, 0, myBitmap.getWidth(), myBitmap.getHeight(), matrix, true);
+//            holder.imageview.setImageBitmap(myBitmap1);
+//            holders.add(holder);
+//            return convertView;
+//        }
+//
+//    }
+//    class ViewHolder {
+//        ImageView imageview;
+//        CheckBox checkbox;
+//    }
 
 
-        public ImageAdapter() {
-            mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    public void copyFile(String selectedImagePath, String string) throws IOException {
+        InputStream in = new FileInputStream(selectedImagePath);
+        OutputStream out = new FileOutputStream(string);
+
+        // Transfer bytes from in to out
+        byte[] buf = new byte[1024];
+        int len;
+        while ((len = in.read(buf)) > 0) {
+            out.write(buf, 0, len);
         }
-
-        public int getCount() {
-            return f.size();
-        }
-
-        public ViewHolder getItem(int position) {
-            return holders.get(position);
-        }
-
-        public long getItemId(int position) {
-            return position;
-        }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder;
-            if (convertView == null) {
-                holder = new ViewHolder();
-                convertView = mInflater.inflate(
-                        R.layout.galleryitem, null);
-                holder.imageview = (ImageView) convertView.findViewById(R.id.thumbImage);
-                holder.checkbox = (CheckBox) convertView.findViewById(R.id.itemCheckBox);
-                convertView.setTag(holder);
-            }
-            else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 8;
-            Bitmap myBitmap = BitmapFactory.decodeFile(f.get(position), options);
-            Matrix matrix = new Matrix();
-            matrix.postRotate(90);
-            Bitmap myBitmap1 =  Bitmap.createBitmap(myBitmap, 0, 0, myBitmap.getWidth(), myBitmap.getHeight(), matrix, true);
-            holder.imageview.setImageBitmap(myBitmap1);
-            holders.add(holder);
-            return convertView;
-        }
-
-    }
-    class ViewHolder {
-        ImageView imageview;
-        CheckBox checkbox;
+        in.close();
+        out.close();
+        Toast customToast = new Toast(getBaseContext());
+        customToast = Toast.makeText(getBaseContext(), "Image Transferred", Toast.LENGTH_LONG);
+        customToast.setGravity(Gravity.CENTER|Gravity.CENTER, 0, 0);
+        customToast.show();
     }
 
     public void onBackPressed() {
