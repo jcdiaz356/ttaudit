@@ -20,7 +20,7 @@ import java.util.List;
 
 import adapter.CustomListAdapter;
 import app.AppController;
-import model.Movie;
+import com.dataservicios.model.Movie;
 
 /**
  * Created by usuario on 06/01/2015.

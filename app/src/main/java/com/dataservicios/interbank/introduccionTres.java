@@ -21,8 +21,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.SQLite.DatabaseHelper;
-import com.dataservicios.librerias.GlobalConstant;
-import com.dataservicios.librerias.SessionManager;
+import com.dataservicios.util.GlobalConstant;
+import com.dataservicios.util.SessionManager;
 import com.dataservicios.systemauditor.R;
 
 import org.json.JSONArray;
@@ -32,12 +32,13 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 import app.AppController;
-import model.Encuesta;
+import com.dataservicios.model.Encuesta;
 
 /**
  * Created by usuario on 09/04/2015.
  */
 public class introduccionTres extends Activity{
+    private static final String LOG_TAG = introduccionTres.class.getSimpleName();
     private ProgressDialog pDialog;
     private int idCompany, idPDV, idRuta, idAuditoria,idUser ;
     private JSONObject params;
@@ -145,6 +146,7 @@ public class introduccionTres extends Activity{
                         paramsData = new JSONObject();
                         try {
                             paramsData.put("poll_id", pregunta.getTag());
+                            paramsData.put("user_id", String.valueOf(idUser));
                             paramsData.put("store_id", idPDV);
                             paramsData.put("idAuditoria", idAuditoria);
                             paramsData.put("idCompany", idCompany);
@@ -157,6 +159,8 @@ public class introduccionTres extends Activity{
                             paramsData.put("result", result);
                             paramsData.put("status", "1");
                             paramsData.put("comentario", comentario.getText());
+
+
                             //params.put("id_pdv",idPDV);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -192,7 +196,7 @@ public class introduccionTres extends Activity{
                     @Override
                     public void onResponse(JSONObject response)
                     {
-                        Log.d("DATAAAA", response.toString());
+                        Log.d(LOG_TAG, response.toString());
                         //adapter.notifyDataSetChanged();
                         try {
                             //String agente = response.getString("agentes");
@@ -263,62 +267,14 @@ public class introduccionTres extends Activity{
 
     private void leerEncuesta() {
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(41);
+            //Encuesta encuesta = db.getEncuesta(526);
+            Encuesta encuesta = db.getEncuesta(GlobalConstant.poll_id[0]);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());
             //}
         }
     }
-    //Lee las preguntas del servidor para mostralo en la inteface
-    private void leerPreguntasEncuesta(JSONObject  params){
-        showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonGetQuestions" ,params,
-                new Response.Listener<JSONObject>()
-                {
-                    @Override
-                    public void onResponse(JSONObject response)
-                    {
-                        Log.d("DATAAAA", response.toString());
-                        //adapter.notifyDataSetChanged();
-                        try {
-                            //String agente = response.getString("agentes");
-                            int success =  response.getInt("success");
-                            //idCompany =response.getInt("company");
-                            if (success == 1) {
-                                JSONArray agentesObjJson;
-                                agentesObjJson = response.getJSONArray("questions");
-                                // looping through All Products
-                                for (int i = 0; i < agentesObjJson.length(); i++) {
-                                    JSONObject obj = agentesObjJson.getJSONObject(i);
-                                    // Storing each json item in variable
-                                    String idPregunta = obj.getString("id");
-                                    String question = obj.getString("question");
-                                    // int status = obj.getInt("state");
-                                    if (idPregunta.equals("1")  ){
-                                        pregunta.setText(question);
-                                        pregunta.setTag(idPregunta);
-                                    }
 
-                                }
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        hidepDialog();
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        //VolleyLog.d(TAG, "Error: " + error.getMessage());
-                        hidepDialog();
-                    }
-                }
-        );
-
-        AppController.getInstance().addToRequestQueue(jsObjRequest);
-
-    }
 }
 

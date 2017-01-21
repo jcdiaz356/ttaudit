@@ -13,7 +13,7 @@ import com.dataservicios.systemauditor.R;
 
 import java.util.ArrayList;
 
-import model.NavDrawerItem;
+import com.dataservicios.model.NavDrawerItem;
 
 /**
  * Created by usuario on 24/11/2014.

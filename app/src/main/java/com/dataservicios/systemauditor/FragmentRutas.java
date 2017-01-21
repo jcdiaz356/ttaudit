@@ -2,41 +2,29 @@ package com.dataservicios.systemauditor;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ListFragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.*;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.dataservicios.librerias.GlobalConstant;
+import com.dataservicios.util.GlobalConstant;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import com.dataservicios.librerias.JSONParser;
-import com.dataservicios.librerias.SessionManager;
+import com.dataservicios.util.SessionManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,12 +35,10 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import adapter.CustomListAdapter;
 import adapter.RutasAdapter;
 import app.AppController;
-import model.Ruta;
+import com.dataservicios.model.Ruta;
 import android.widget.AdapterView.OnItemClickListener;
 /**
  * Created by usuario on 08/01/2015.
@@ -97,6 +83,7 @@ public class FragmentRutas extends Fragment {
         params = new JSONObject();
         try {
             params.put("id", id_user);
+            params.put("company_id",String.valueOf(GlobalConstant.company_id));
         } catch (JSONException e) {
             e.printStackTrace();
         }

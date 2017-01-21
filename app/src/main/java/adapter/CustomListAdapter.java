@@ -2,7 +2,7 @@ package adapter;
 
 import com.dataservicios.systemauditor.R;
 import  app.AppController;
-import  model.Movie;
+import  com.dataservicios.model.Movie;
 
 import java.util.List;
 

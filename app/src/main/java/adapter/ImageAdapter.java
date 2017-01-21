@@ -70,10 +70,10 @@ public class ImageAdapter extends BaseAdapter {
         Bitmap myBitmap = BitmapFactory.decodeFile(f.get(position), options);
         Matrix matrix = new Matrix();
         //Rotación imagen
-        matrix.postRotate(0);
+        //matrix.postRotate(90);
         Bitmap myBitmap1 =  Bitmap.createBitmap(myBitmap, 0, 0, myBitmap.getWidth(), myBitmap.getHeight(), matrix, true);
         holder.imageview.setImageBitmap(myBitmap1);
-        holder.checkbox.setText(String.valueOf(position));
+        //holder.checkbox.setText(String.valueOf(position));
         holders.add(holder);
 
         //holder.checkbox.setId(position);

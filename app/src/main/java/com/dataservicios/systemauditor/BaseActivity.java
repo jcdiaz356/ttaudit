@@ -1,13 +1,18 @@
 package com.dataservicios.systemauditor;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -15,11 +20,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.dataservicios.util.SessionManager;
+
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import adapter.NavDrawerListAdapter;
-import model.NavDrawerItem;
+import com.dataservicios.model.NavDrawerItem;
 
 /**
  * Created by usuario on 26/11/2014.
@@ -38,19 +48,36 @@ public class BaseActivity extends Activity {
     private ArrayList<NavDrawerItem> navDrawerItems;
     private NavDrawerListAdapter adapter;
 
+    private String pathFile ;
+    private File filePath;
+
+    final Activity MyActivity = this;
+
+    private SessionManager session;
+    private String email_user, id_user, name_user;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_paneladmin);
 
+
+        session = new SessionManager(getApplicationContext());
+        HashMap<String, String> user = session.getUserDetails();
+        // name
+        name_user = user.get(SessionManager.KEY_NAME);
+        // email
+        email_user = user.get(SessionManager.KEY_EMAIL);
+        // id
+        id_user = user.get(SessionManager.KEY_ID_USER);
+
+
         mTitle = mDrawerTitle = getTitle();
 
         // load slide menu items
         navMenuTitles = getResources().getStringArray(R.array.nav_drawer_items);
-
         // nav drawer icons from resources
-        navMenuIcons = getResources()
-                .obtainTypedArray(R.array.nav_drawer_icons);
+        navMenuIcons = getResources().obtainTypedArray(R.array.nav_drawer_icons);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.list_slidermenu);
         navDrawerItems = new ArrayList<NavDrawerItem>();
@@ -62,7 +89,7 @@ public class BaseActivity extends Activity {
         // Photos
         navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons.getResourceId(2, -1)));
         // Photos
-        navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons.getResourceId(3, -1)));
+        //navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons.getResourceId(3, -1)));
         // Communities, Will add a counter here
         //navDrawerItems.add(new NavDrawerItem(navMenuTitles[3], navMenuIcons.getResourceId(3, -1), true, "22"));
         // Pages
@@ -73,8 +100,7 @@ public class BaseActivity extends Activity {
         navMenuIcons.recycle();
         mDrawerList.setOnItemClickListener(new SlideMenuClickListener());
         // setting the nav drawer list adapter
-        adapter = new NavDrawerListAdapter(getApplicationContext(),
-                navDrawerItems);
+        adapter = new NavDrawerListAdapter(getApplicationContext(), navDrawerItems);
         mDrawerList.setAdapter(adapter);
         // enabling action bar app icon and behaving it as toggle button
         getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -136,8 +162,50 @@ public class BaseActivity extends Activity {
                 Log.i("Hola:","sdfsdf");
 
                 return true;
+            case R.id.action_about:
+                Intent intent = new Intent(MyActivity,About.class);
+                startActivity(intent);
+                //finish();
+                return true;
+
+
+            case R.id.action_salir:
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case DialogInterface.BUTTON_POSITIVE:
+                                //super.onBackPressed();
+                                //session.logoutUser();
+                                //finish();
+                                session.logoutUser();
+                                //finish();
+                                // Termina Toda las actividades abiertas
+                                //for api 16+ use finishAffinity(); and for api <16 use ActivityCompat.finishAffinity(this); (with import import android.support.v4.app.ActivityCompat)
+                                ActivityCompat.finishAffinity(MyActivity);
+                                break;
+
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                break;
+                        }
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this,2);
+                builder.setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("Cerar aplicación")
+                        .setMessage("Está seguro que desea cerrar sesión ?")
+                        .setPositiveButton("Si", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show();
+
+
+
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
+
+
         }
     }
     /***
@@ -166,15 +234,50 @@ public class BaseActivity extends Activity {
                 break;
 
             case 1:
-                fragment = new CheckingFragment();
+//                fragment = new CheckingFragment();
+//                break;
+                pathFile = Environment.getExternalStorageDirectory().toString()+"/Pictures/" + getAlbunNameTemp()  ;
+
+                //File filePath = new File(pathFile);
+                filePath = new File(pathFile);
+
+                if (filePath.isDirectory()) {
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    Uri myUri = Uri.parse(String.valueOf(filePath));
+                    intent.setDataAndType(myUri , "resource/folder");
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(MyActivity,"El directorio no existe, no hay imagenes temporales",Toast.LENGTH_LONG).show();
+                }
+
                 break;
             case 2:
-                fragment = new GraficosFragment();
-                //fragment = new PhotosFragment();
+//                fragment = new GraficosFragment();
+//                //fragment = new PhotosFragment();
+//                break;
+                //String pathFile = Environment.getExternalStorageDirectory().toString()+"/Pictures/" + getAlbunNameTemp()  ;
+                pathFile = Environment.getExternalStorageDirectory().toString()+"/Pictures/" + getAlbunNameBackup()  ;
+
+                //File filePath = new File(pathFile);
+                filePath = new File(pathFile);
+
+                if (filePath.isDirectory()) {
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    Uri myUri = Uri.parse(String.valueOf(filePath));
+                    intent.setDataAndType(myUri , "resource/folder");
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(MyActivity,"El directorio no existe, no hay backup de imágenes",Toast.LENGTH_LONG).show();
+                }
+
                 break;
             case 3:
                 //fragment = new CommunityFragment();
-                break;
+                //String pathFile = Environment.getExternalStorageDirectory().toString()+"/Pictures/" + getAlbunNameBackup()  ;
+
+
             case 4:
                 //fragment = new PagesFragment();
                 break;
@@ -225,6 +328,14 @@ public class BaseActivity extends Activity {
         super.onConfigurationChanged(newConfig);
         // Pass any configuration change to the drawer toggls
         mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    private String getAlbunNameTemp(){
+        return  getString(R.string.album_name_temp);
+    }
+
+    private String getAlbunNameBackup(){
+        return  getString(R.string.album_name_backup);
     }
 
 }

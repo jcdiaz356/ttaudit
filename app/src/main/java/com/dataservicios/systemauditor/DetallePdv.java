@@ -9,10 +9,10 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,19 +26,17 @@ import android.widget.LinearLayout.*;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.dataservicios.librerias.GlobalConstant;
-import com.dataservicios.librerias.SessionManager;
-import com.google.android.gms.maps.CameraUpdate;
+import com.dataservicios.model.Audit;
+import com.dataservicios.util.AuditUtil;
+import com.dataservicios.util.GlobalConstant;
+import com.dataservicios.util.SessionManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -46,15 +44,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 import app.AppController;
-import model.Pdv;
-import model.Ruta;
+
 /**
  * Created by usuario on 14/01/2015.
  */
@@ -80,7 +76,7 @@ public class DetallePdv extends FragmentActivity {
     private int idPDV, IdRuta, idCompany;
     private String fechaRuta;
     EditText pdvs1,pdvsAuditados1,porcentajeAvance1;
-    TextView tvTienda,tvDireccion ,tvRepresentante , tvPDVSdelDía , tvLong, tvLat;
+    TextView tvTienda,tvDireccion , tv_Distrito, tv_Ejecutivo ,  tvPDVSdelDía , tvLong, tvLat, tv_CodClient, tv_Referencia;
     Button btGuardarLatLong, btCerrarAudit;
     Activity MyActivity = (Activity) this;
     @Override
@@ -99,10 +95,13 @@ public class DetallePdv extends FragmentActivity {
         porcentajeAvance1 = (EditText)  findViewById(R.id.etPorcentajeAvance);
         tvTienda = (TextView)  findViewById(R.id.tvTienda);
         tvDireccion = (TextView)  findViewById(R.id.tvDireccion);
-        tvRepresentante = (TextView)  findViewById(R.id.tvRepresentante);
+        tv_Distrito = (TextView)  findViewById(R.id.tvDistrito);
+        tv_Ejecutivo = (TextView)  findViewById(R.id.tvEjecutivo);
         tvPDVSdelDía = (TextView)  findViewById(R.id.tvPDVSdelDía);
-        tvLong = (TextView) findViewById(R.id.tvlogitud);
-        tvLat = (TextView) findViewById(R.id.tvLatitud);
+        tv_CodClient = (TextView)  findViewById(R.id.tvCodCliente);
+        tv_Referencia = (TextView)  findViewById(R.id.tvReferencia);
+//        tvLong = (TextView) findViewById(R.id.tvlogitud);
+//        tvLat = (TextView) findViewById(R.id.tvLatitud);
         btGuardarLatLong = (Button) findViewById(R.id.btGuardarLatLong);
         btCerrarAudit = (Button) findViewById(R.id.btCerrarAuditoria);
         // get user data from session
@@ -193,6 +192,7 @@ public class DetallePdv extends FragmentActivity {
                             paramsCloseAudit.put("tduser", id_user);
                             paramsCloseAudit.put("id", idPDV);
                             paramsCloseAudit.put("idruta", IdRuta);
+                            paramsCloseAudit.put("company_id", GlobalConstant.company_id);
                             insertaTiemporAuditoria(paramsCloseAudit);
 
                         } catch (JSONException e) {
@@ -252,6 +252,7 @@ public class DetallePdv extends FragmentActivity {
             //Enviando
 
             params.put("iduser", id_user);
+            params.put("company_id", GlobalConstant.company_id);
 
             //params.put("id_pdv",idPDV);
         } catch (JSONException e) {
@@ -260,98 +261,76 @@ public class DetallePdv extends FragmentActivity {
         cargaPdvs();
         //cargarAditoriasInterbank();
         cargarAditoriasInterbank();
-        //cargaAuditorias();
-        //cargarAditoriasDeMuestra();
 
 
-//        if(GlobalConstant.global_close_audit==1){
-//            GlobalConstant.global_close_audit=0;
-//            JSONObject paramsCloseAudit = new JSONObject();
-//            try {
-//                paramsCloseAudit.put("latitud_close", lat);
-//                paramsCloseAudit.put("longitud_close", lon);
-//                paramsCloseAudit.put("latitud_open", GlobalConstant.latitude_open);
-//                paramsCloseAudit.put("longitud_open",  GlobalConstant.latitude_open);
-//                paramsCloseAudit.put("tiempo_inicio",  GlobalConstant.inicio);
-//                paramsCloseAudit.put("tiempo_fin",  GlobalConstant.fin);
-//                paramsCloseAudit.put("tduser", id_user);
-//                paramsCloseAudit.put("id", idPDV);
-//                paramsCloseAudit.put("idruta", IdRuta);
-//                insertaTiemporAuditoria(paramsCloseAudit);
-//
-//            } catch (JSONException e) {
-//                e.printStackTrace();
+    }
+
+
+//    private void comenzarLocalizacion()
+//    {
+//        //Obtenemos una referencia al LocationManager
+//        locManager =  (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+//        //Obtenemos la última posición conocida
+//        Location loc =   locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//        //Mostramos la última posición conocida
+//        mostrarPosicion(loc);
+//        //Nos registramos para recibir actualizaciones de la posición
+//        locListener = new LocationListener() {
+//            public void onLocationChanged(Location location) {
+//                mostrarPosicion(location);
+//                if( MarkerNow != null){
+//                    MarkerNow.remove();
+//                }
+//                // Creating a LatLng object for the current location
+//                LatLng latLng = new LatLng(latitude, longitude);
+//                MarkerNow = map.addMarker(new MarkerOptions()
+//                        .position(new LatLng(latitude, longitude))
+//                        .title("Melbourne")
+//                        .snippet("Population: 4,137,400")
+//                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker_map)));
+//                // Showing the current location in Google Map
+//                map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+//                // Zoom in the Google Map
+//                map.animateCamera(CameraUpdateFactory.zoomTo(15));
+//                Log.i("Prueba", "Mostrando Posición ");
 //            }
+//            public void onProviderDisabled(String provider){
+//                //lblEstado.setText("Provider OFF");
+//                Log.i("Prueba", "Provider OFF");
+//            }
+//            public void onProviderEnabled(String provider){
+//                //lblEstado.setText("Provider ON ");
+//                Log.i("Prueba", "Provider OFF");
+//            }
+//            public void onStatusChanged(String provider, int status, Bundle extras){
+//                Log.i("Prueba", "Provider Status: " + status);
+//
+//                //lblEstado.setText("Provider Status: " + status);
+//            }
+//        };
+//        locManager.requestLocationUpdates(
+//                LocationManager.GPS_PROVIDER, 60000, 0, locListener);
+//    }
+
+//    private void mostrarPosicion(Location loc) {
+//        if(loc != null)
+//        {
+//            //lblLatitud.setText("Latitud: " + String.valueOf(loc.getLatitude()));
+//            //lblLongitud.setText("Longitud: " + String.valueOf(loc.getLongitude()));
+//            //lblPrecision.setText("Precision: " + String.valueOf(loc.getAccuracy()));
+//            latitude=loc.getLatitude();
+//            longitude= loc.getLongitude();
+//
+//            Log.i("Posicion: ", String.valueOf(latitude + " - " + String.valueOf(longitude) + " - "));
 //        }
-
-    }
-
-
-    private void comenzarLocalizacion()
-    {
-        //Obtenemos una referencia al LocationManager
-        locManager =  (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        //Obtenemos la última posición conocida
-        Location loc =   locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        //Mostramos la última posición conocida
-        mostrarPosicion(loc);
-        //Nos registramos para recibir actualizaciones de la posición
-        locListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                mostrarPosicion(location);
-                if( MarkerNow != null){
-                    MarkerNow.remove();
-                }
-                // Creating a LatLng object for the current location
-                LatLng latLng = new LatLng(latitude, longitude);
-                MarkerNow = map.addMarker(new MarkerOptions()
-                        .position(new LatLng(latitude, longitude))
-                        .title("Melbourne")
-                        .snippet("Population: 4,137,400")
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker_map)));
-                // Showing the current location in Google Map
-                map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                // Zoom in the Google Map
-                map.animateCamera(CameraUpdateFactory.zoomTo(15));
-                Log.i("Prueba", "Mostrando Posición ");
-            }
-            public void onProviderDisabled(String provider){
-                //lblEstado.setText("Provider OFF");
-                Log.i("Prueba", "Provider OFF");
-            }
-            public void onProviderEnabled(String provider){
-                //lblEstado.setText("Provider ON ");
-                Log.i("Prueba", "Provider OFF");
-            }
-            public void onStatusChanged(String provider, int status, Bundle extras){
-                Log.i("Prueba", "Provider Status: " + status);
-
-                //lblEstado.setText("Provider Status: " + status);
-            }
-        };
-        locManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER, 60000, 0, locListener);
-    }
-
-    private void mostrarPosicion(Location loc) {
-        if(loc != null)
-        {
-            //lblLatitud.setText("Latitud: " + String.valueOf(loc.getLatitude()));
-            //lblLongitud.setText("Longitud: " + String.valueOf(loc.getLongitude()));
-            //lblPrecision.setText("Precision: " + String.valueOf(loc.getAccuracy()));
-            latitude=loc.getLatitude();
-            longitude= loc.getLongitude();
-
-            Log.i("Posicion: ", String.valueOf(latitude + " - " + String.valueOf(longitude) + " - "));
-        }
-        else
-        {
-//            lblLatitud.setText("Latitud: (sin_datos)");
-//            lblLongitud.setText("Longitud: (sin_datos)");
-//            lblPrecision.setText("Precision: (sin_datos)");
-            Log.i("SIN Data","No hay datos para mostrar");
-        }
-    }
+//        else
+//        {
+////            lblLatitud.setText("Latitud: (sin_datos)");
+////            lblLongitud.setText("Longitud: (sin_datos)");
+////            lblPrecision.setText("Precision: (sin_datos)");
+//            Log.i("SIN Data","No hay datos para mostrar");
+//        }
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -376,6 +355,7 @@ public class DetallePdv extends FragmentActivity {
         if (pDialog.isShowing())
             pDialog.dismiss();
     }
+
     private void cargaPdvs(){
         showpDialog();
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonRoadDetail" ,params,
@@ -401,10 +381,14 @@ public class DetallePdv extends FragmentActivity {
                                         try {
                                             JSONObject obj = ObjJson.getJSONObject(i);
                                             tvTienda.setText(obj.getString("fullname"));
+                                           // tvDireccion.setText(obj.getString("address"));
                                             tvDireccion.setText(obj.getString("address"));
-                                            tvRepresentante.setText(obj.getString("district"));
-                                            tvLat.setText(obj.getString("latitude"));
-                                            tvLong.setText(obj.getString("longitude"));
+                                            tv_Distrito.setText(obj.getString("district"));
+                                            tv_Ejecutivo.setText(obj.getString("ejecutivo"));
+                                            tv_CodClient.setText(obj.getString("codclient"));
+                                            tv_Referencia.setText(obj.getString("urbanization"));
+                                            //tvLat.setText(obj.getString("latitude"));
+                                            //tvLong.setText(obj.getString("longitude"));
                                             latitude=Double.valueOf(obj.getString("latitude"))  ;
                                             longitude=Double.valueOf(obj.getString("longitude"));
                                             map.clear();
@@ -458,203 +442,6 @@ public class DetallePdv extends FragmentActivity {
         AppController.getInstance().addToRequestQueue(jsObjRequest);
     }
 
-    private void cargaAuditorias(){
-//        showpDialog();
-        JsonArrayRequest rutaReq = new JsonArrayRequest(GlobalConstant.dominio + "/webservice/auditorias.php",
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        Log.d(TAG, response.toString());
-                        // Parsing json
-                        for (int i = 0; i < response.length(); i++) {
-                            try {
-                                JSONObject obj = response.getJSONObject(i);
-//                                Ruta ruta = new Ruta();
-//                                ruta.setId(obj.getInt("id"));
-//                                ruta.setRutaDia(obj.getString("ruta"));
-//                                ruta.setPdvs(obj.getInt("pdvs"));
-//                                ruta.setPorcentajeAvance(obj.getInt("porcentajeavance"));
-                                bt = new Button(MyActivity);
-                                LinearLayout ly = new LinearLayout(MyActivity);
-                                ly.setOrientation(LinearLayout.VERTICAL);
-                                ly.setId(i+'_');
-
-                                LayoutParams params = new LayoutParams(
-                                        LayoutParams.FILL_PARENT,
-                                        LayoutParams.FILL_PARENT
-                                );
-                                params.setMargins(0, 10, 0, 10);
-
-                                ly.setLayoutParams(params);
-
-
-                                bt.setBackgroundColor(getResources().getColor(R.color.color_base));
-                                bt.setTextColor(getResources().getColor(R.color.color_fondo));
-                                bt.setText(obj.getString("ruta"));
-                                Drawable img = MyActivity.getResources().getDrawable( R.drawable.ic_check_on);
-
-                                img.setBounds( 0, 0, 60, 60 );  // set the image size
-                                bt.setCompoundDrawables( img, null, null, null );
-                                //bt.setBackground();
-                                bt.setId( i );
-                                bt.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-                                bt.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        // Toast.makeText(getActivity(), j  , Toast.LENGTH_LONG).show();
-                                        Button button1 = (Button) v;
-                                        String texto = button1.getText().toString();
-                                        //Toast toast=Toast.makeText(getActivity(), selected, Toast.LENGTH_SHORT);
-
-                                        Toast toast;
-                                        toast = Toast.makeText(MyActivity, texto, Toast.LENGTH_LONG);
-                                        toast.show();
-                                    }
-                                });
-                                ly.addView(bt);
-                                linearLayout.addView(ly);
-
-                                // adding movie to movies array
-                               // rutaList.add(ruta);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        // notifying list adapter about data changes
-                        // so that it renders the list view with updated data
-                        //adapter.notifyDataSetChanged();
-                        hidepDialog();
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.d(TAG, "Error: " + error.getMessage());
-                hidepDialog();
-            }
-        }
-        );
-
-        AppController.getInstance().addToRequestQueue(rutaReq);
-
-    }
-
-    private void cargarAditoriasPrueba(){
-        showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonAuditsForStore" ,params,
-                new Response.Listener<JSONObject>()
-                {
-                    @Override
-                    public void onResponse(JSONObject response)
-                    {
-                        Log.d("DATAAAA", response.toString());
-                        //adapter.notifyDataSetChanged();
-                        try {
-                            //String agente = response.getString("agentes");
-                            int success =  response.getInt("success");
-                            idCompany =response.getInt("company");
-                            if (success == 1) {
-                                JSONArray agentesObjJson;
-                                agentesObjJson = response.getJSONArray("audits");
-                                // looping through All Products
-                                for (int i = 0; i < agentesObjJson.length(); i++) {
-                                    JSONObject obj = agentesObjJson.getJSONObject(i);
-                                    // Storing each json item in variable
-                                    String idAuditoria = obj.getString("id");
-                                    String auditoria = obj.getString("fullname");
-                                    int status = obj.getInt("state");
-                                    bt = new Button(MyActivity);
-                                    LinearLayout ly = new LinearLayout(MyActivity);
-                                    ly.setOrientation(LinearLayout.VERTICAL);
-                                    ly.setId(i+'_');
-                                    LayoutParams params = new LayoutParams(
-                                            LayoutParams.FILL_PARENT,
-                                            LayoutParams.FILL_PARENT
-                                    );
-                                    params.setMargins(0, 10, 0, 10);
-                                    ly.setLayoutParams(params);
-                                    bt.setBackgroundColor(getResources().getColor(R.color.color_base));
-                                    bt.setTextColor(getResources().getColor(R.color.color_fondo));
-                                    bt.setText(auditoria);
-
-                                    if(status==1) {
-                                        Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_on);
-                                        img.setBounds( 0, 0, 60, 60 );  // set the image size
-                                        bt.setCompoundDrawables( img, null, null, null );
-                                        bt.setBackgroundColor(getResources().getColor(R.color.color_bottom_buttom_pressed));
-                                        bt.setTextColor(getResources().getColor(R.color.color_base));
-                                        bt.setEnabled(false);
-                                    }  else {
-                                        Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_off);
-                                        img.setBounds( 0, 0, 60, 60 );  // set the image size
-                                        bt.setCompoundDrawables( img, null, null, null );
-                                    }
-                                    //bt.setBackground();
-                                    bt.setId(Integer.valueOf(idAuditoria));
-                                    bt.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-                                    bt.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            // Toast.makeText(getActivity(), j  , Toast.LENGTH_LONG).show();
-                                            Button button1 = (Button) v;
-                                            String texto = button1.getText().toString();
-                                            //Toast toast=Toast.makeText(getActivity(), selected, Toast.LENGTH_SHORT);
-                                            Toast toast;
-                                            toast = Toast.makeText(MyActivity, texto, Toast.LENGTH_LONG);
-                                            toast.show();
-                                            //int idBoton = Integer.valueOf(idAuditoria);
-                                            Intent intent;
-                                            int idAuditoria = button1.getId();
-                                            switch (idAuditoria) {
-                                                case 4:
-//                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
-//                                                    startActivity(intent);
-                                                    Bundle argRuta = new Bundle();
-                                                    argRuta.putInt("company_id",idCompany);
-                                                    argRuta.putInt("idPDV",idPDV);
-                                                    argRuta.putInt("idRuta", IdRuta );
-                                                    argRuta.putString("fechaRuta",fechaRuta);
-                                                    argRuta.putInt("idAuditoria",idAuditoria);
-                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
-                                                    intent.putExtras(argRuta);
-                                                    startActivity(intent);
-                                                    break;
-                                                case 2:
-                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
-                                                    startActivity(intent);
-                                                    break;
-                                            }
-                                        }
-                                    });
-                                    ly.addView(bt);
-                                    linearLayout.addView(ly);
-
-
-
-                                }
-
-
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-
-                        hidepDialog();
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        //VolleyLog.d(TAG, "Error: " + error.getMessage());
-                        hidepDialog();
-                    }
-                }
-        );
-
-        AppController.getInstance().addToRequestQueue(jsObjRequest);
-
-    }
 
     private void cargarAditoriasInterbank(){
         showpDialog();
@@ -684,16 +471,19 @@ public class DetallePdv extends FragmentActivity {
                                     LinearLayout ly = new LinearLayout(MyActivity);
                                     ly.setOrientation(LinearLayout.VERTICAL);
                                     ly.setId(i+'_');
+
+
                                     LayoutParams params = new LayoutParams(
                                             LayoutParams.FILL_PARENT,
                                             LayoutParams.FILL_PARENT
                                     );
+
+
                                     params.setMargins(0, 10, 0, 10);
                                     ly.setLayoutParams(params);
                                     bt.setBackgroundColor(getResources().getColor(R.color.color_base));
                                     bt.setTextColor(getResources().getColor(R.color.color_fondo));
                                     bt.setText(auditoria);
-
 
                                     if(status==1) {
                                         Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_on);
@@ -800,112 +590,7 @@ public class DetallePdv extends FragmentActivity {
 
     }
 
-    private void cargarAditoriasDeMuestra(){
 
-
-
-
-                                for (int i = 0; i < 4; i++) {
-
-                                    // Storing each json item in variable
-                                    String idAuditoria = String.valueOf(i);
-                                    String auditoria="";
-                                    switch (i) {
-                                        case 0:
-                                            auditoria ="INTRODUCCIÓN ";
-                                            break;
-
-                                        case 1:
-                                            auditoria ="USO DE INTERBANK AGENTE ";
-                                            break;
-                                        case 2:
-                                            auditoria ="EVALUACIÓN DE TRANSACCIÓN ";
-                                            break;
-                                        case 3:
-                                            auditoria ="EVALUACIÓN DEL TRATO ";
-                                            break;
-
-
-                                    }
-                                    int status = 0;
-                                    bt = new Button(MyActivity);
-                                    LinearLayout ly = new LinearLayout(MyActivity);
-                                    ly.setOrientation(LinearLayout.VERTICAL);
-                                    ly.setId(i+'_');
-                                    LayoutParams params = new LayoutParams(
-                                            LayoutParams.FILL_PARENT,
-                                            LayoutParams.FILL_PARENT
-                                    );
-                                    params.setMargins(0, 10, 0, 10);
-                                    ly.setLayoutParams(params);
-                                    bt.setBackgroundColor(getResources().getColor(R.color.color_base));
-                                    bt.setTextColor(getResources().getColor(R.color.color_fondo));
-                                    bt.setText(auditoria);
-
-
-                                    if(status==1) {
-                                        Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_on);
-                                        img.setBounds( 0, 0, 60, 60 );  // set the image size
-                                        bt.setCompoundDrawables( img, null, null, null );
-                                        bt.setBackgroundColor(getResources().getColor(R.color.color_bottom_buttom_pressed));
-                                        bt.setTextColor(getResources().getColor(R.color.color_base));
-                                        bt.setEnabled(false);
-                                    }  else {
-                                        Drawable  img = MyActivity.getResources().getDrawable( R.drawable.ic_check_off);
-                                        img.setBounds( 0, 0, 60, 60 );  // set the image size
-                                        bt.setCompoundDrawables( img, null, null, null );
-
-                                    }
-                                    //bt.setBackground();
-                                    bt.setId(Integer.valueOf(idAuditoria));
-                                    bt.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-                                    bt.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            // Toast.makeText(getActivity(), j  , Toast.LENGTH_LONG).show();
-                                            Button button1 = (Button) v;
-                                            String texto = button1.getText().toString();
-                                            //Toast toast=Toast.makeText(getActivity(), selected, Toast.LENGTH_SHORT);
-
-                                            Toast toast;
-                                            toast = Toast.makeText(MyActivity, texto, Toast.LENGTH_LONG);
-                                            toast.show();
-
-                                            //int idBoton = Integer.valueOf(idAuditoria);
-                                            Intent intent;
-                                            int idAuditoria = button1.getId();
-                                            switch (idAuditoria) {
-                                                case 0:
-//                                                    intent = new Intent("com.dataservicios.systemauditor.ENCUESTA");
-//                                                    startActivity(intent);
-
-                                                    intent = new Intent("com.dataservicios.systemauditor.INTRODUCCION");
-                                                    //intent.putExtras(argRuta);
-                                                    startActivity(intent);
-
-                                                    break;
-
-                                                case 1:
-                                                    intent = new Intent("com.dataservicios.systemauditor.USOIBK");
-                                                    startActivity(intent);
-                                                    break;
-                                                case 2:
-                                                    intent = new Intent("com.dataservicios.systemauditor.EV_TRANSACCION");
-                                                    startActivity(intent);
-                                                    break;
-                                                case 3:
-                                                    intent = new Intent("com.dataservicios.systemauditor.EV_TRATO");
-                                                    startActivity(intent);
-                                                    break;
-
-                                            }
-                                        }
-                                    });
-                                    ly.addView(bt);
-                                    linearLayout.addView(ly);
-                                }
-
-    }
 
     private void guardarCoordenadas(){
 
@@ -936,8 +621,8 @@ public class DetallePdv extends FragmentActivity {
                                 CameraPosition cameraPosition = new CameraPosition.Builder().target(new LatLng(lat, lon)).zoom(15).build();
                                 map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-                                tvLat.setText(String.valueOf(lat));
-                                tvLong.setText(String.valueOf(lon));
+//                                tvLat.setText(String.valueOf(lat));
+//                                tvLong.setText(String.valueOf(lon));
 
                             }
                         } catch (JSONException e) {
@@ -962,7 +647,8 @@ public class DetallePdv extends FragmentActivity {
 
     private void insertaTiemporAuditoria(JSONObject parametros) {
         showpDialog();
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/insertaTiempo" ,parametros,
+        //JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/insertaTiempo" ,parametros,
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/insertaTiempoNew" ,parametros,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -1026,5 +712,7 @@ public class DetallePdv extends FragmentActivity {
         finish();
         startActivity(getIntent());
     }
+
+
 
 }

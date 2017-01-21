@@ -102,16 +102,30 @@
         </LinearLayout>
 
         <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="56dp">
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="56dp">
 
-        <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="MAPA DE RUTAS"
-        android:id="@+id/button1"
-        style="@style/BottonBase" />
+
+            <Button
+                android:id="@+id/btMapaRuta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/ic_route"
+                android:layout_below="@+id/widget110"
+                android:background="@android:color/transparent"
+                android:layout_gravity="right" />
+
+            <Button
+                android:id="@+id/btMapaRutaAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/ic_route_all"
+                android:layout_below="@+id/widget110"
+                android:background="@android:color/transparent"
+                android:layout_gravity="right" />
+
+
         </LinearLayout>
 
     </LinearLayout>

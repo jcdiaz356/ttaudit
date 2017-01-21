@@ -1,9 +1,11 @@
 package com.dataservicios.systemauditor;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -15,22 +17,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.dataservicios.librerias.GPSTracker;
-import com.dataservicios.librerias.GlobalConstant;
-import com.dataservicios.librerias.SessionManager;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.dataservicios.util.GPSTracker;
+import com.dataservicios.util.GlobalConstant;
+import com.dataservicios.util.SessionManager;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -42,12 +32,10 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-import adapter.CustomListAdapter;
 import adapter.PdvsAdapter;
-import app.AppController;
-import model.Movie;
-import model.Pdv;
-import model.Ruta;
+
+import com.dataservicios.model.Pdv;
+import com.dataservicios.util.AuditUtil;
 
 /**
  * Created by usuario on 06/01/2015.
@@ -69,9 +57,9 @@ public class PuntosVenta extends Activity {
     private PdvsAdapter adapter;
     private int IdRuta ;
     private String fechaRuta;
-    private Button bt;
+    private Button btMapaRuta,btMapaRutasAll;
 
-    Activity MyActivity ;
+    Activity MyActivity = (Activity) this;
     private JSONObject params;
     private SessionManager session;
     private String email_user, id_user, name_user;
@@ -86,7 +74,7 @@ public class PuntosVenta extends Activity {
         overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left);
 
 
-        final Activity MyActivity = (Activity) this;
+       // final Activity MyActivity = (Activity) this;
 
         pdvs1 = (EditText) findViewById(R.id.etPDVS);
         pdvsAuditados1 = (EditText) findViewById(R.id.etPDVSAuditados);
@@ -113,22 +101,54 @@ public class PuntosVenta extends Activity {
         params = new JSONObject();
         try {
             params.put("id", IdRuta);
+            params.put("company_id", GlobalConstant.company_id);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        bt = (Button) findViewById(R.id.button1);
+        btMapaRuta = (Button) findViewById(R.id.btMapaRuta);
+        btMapaRutasAll = (Button) findViewById(R.id.btMapaRutaAll);
 
-        bt.setOnClickListener(new View.OnClickListener() {
+        btMapaRuta.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 Bundle argRuta = new Bundle();
-                argRuta.putInt("id",IdRuta);
-                Intent intent = new Intent("com.dataservicios.systemauditor.MAPARUTAS");
+                argRuta.putInt("id", IdRuta);
+                //Intent intent = new Intent("com.dataservicios.ttauditcolgate.MAPARUTAS");
+                Intent intent = new Intent(MyActivity,MapaRuta.class);
                 intent.putExtras(argRuta);
                 startActivity(intent);
+            }
+        });
+
+        btMapaRutasAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Bundle argRuta = new Bundle();
+                argRuta.putInt("id", IdRuta);
+
+//
+//                Intent intent = new Intent(MyActivity, MapaRuta.class);
+//                intent.putExtras(argRuta);
+//                startActivity(intent);
+                try {
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName("com.dataservicios.ttauditrutas", "com.dataservicios.ttauditrutas.MapaRuta"));
+                    intent.putExtras(argRuta);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    Toast.makeText(MyActivity,"No se encuentra instalada la aplicación",Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse("market://details?id=com.dataservicios.ttauditrutas"));
+                    startActivity(intent);
+                }finally {
+
+                }
             }
         });
         listView = (ListView) findViewById(R.id.list);
@@ -177,152 +197,163 @@ public class PuntosVenta extends Activity {
             }
         });
         listView.setAdapter(adapter);
-        pDialog = new ProgressDialog(this);
-        // Showing progress dialog before making http request
-        pDialog.setMessage("Loading...");
-        pDialog.show();
+//        pDialog = new ProgressDialog(this);
+//        // Showing progress dialog before making http request
+//        pDialog.setMessage("Loading...");
+//        pDialog.show();
 
+        new loadStores().execute();
 
-//        JsonArrayRequest movieReq = new JsonArrayRequest(url+"?idruta="+IdRuta,
-//                new Response.Listener<JSONArray>() {
+//        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonRoadsDetail" ,params,
+//                new Response.Listener<JSONObject>()
+//                {
 //                    @Override
-//                    public void onResponse(JSONArray response) {
-//                        Log.d(TAG, response.toString());
-//                        hidePDialog();
-//                        // Parsing json
-//                        for (int i = 0; i < response.length(); i++) {
-//                            try {
-//                                JSONObject obj = response.getJSONObject(i);
-//                                Pdv pdv = new Pdv();
-//                                pdv.setId(obj.getInt("id"));
-//                                pdv.setPdv(obj.getString("pdv"));
-//                                pdv.setThumbnailUrl(obj.getString("image"));
-//                                pdv.setDireccion(obj.getString("direccion"));
-//                                pdv.setDistrito(obj.getString("distrito"));
-//                                pdv.setStatus(obj.getInt("status"));
-//                                // adding movie to movies array
-//                                pdvList.add(pdv);
-//                            } catch (JSONException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                        // notifying list adapter about data changes
-//                        // so that it renders the list view with updated data
-//                        adapter.notifyDataSetChanged();
-//                    }
-//                }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                VolleyLog.d(TAG, "Error: " + error.getMessage());
-//                hidePDialog();
-//            }
-//        });
-//        // Adding request to request queue
-//        AppController.getInstance().addToRequestQueue(movieReq);
-
-
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.POST , GlobalConstant.dominio + "/JsonRoadsDetail" ,params,
-                new Response.Listener<JSONObject>()
-                {
-                    @Override
-                    public void onResponse(JSONObject response)
-                    {
-                        Log.d("DATAAAA", response.toString());
-                        //adapter.notifyDataSetChanged();
-                        try {
-                            //String agente = response.getString("agentes");
-                            int success =  response.getInt("success");
-                            float contadorPDVS =0 ;
-                            float auditadosPDV =0;
-                            if (success == 1) {
+//                    public void onResponse(JSONObject response)
+//                    {
+//                        Log.d("DATAAAA", response.toString());
+//                        //adapter.notifyDataSetChanged();
+//                        try {
+//                            //String agente = response.getString("agentes");
+//                            int success =  response.getInt("success");
+//                            float contadorPDVS =0 ;
+//                            float auditadosPDV =0;
+//                            if (success == 1) {
+////
+//                                JSONArray ObjJson;
+//                                ObjJson = response.getJSONArray("roadsDetail");
+//                                // looping through All Products
+//                                if(ObjJson.length() > 0) {
 //
-                                JSONArray ObjJson;
-                                ObjJson = response.getJSONArray("roadsDetail");
-                                // looping through All Products
-                                if(ObjJson.length() > 0) {
+//                                    contadorPDVS = contadorPDVS + Integer.valueOf(response.getString("pdvs"));
+//                                    auditadosPDV =  auditadosPDV + Integer.valueOf(response.getString("auditados"));
+//
+//                                    for (int i = 0; i < ObjJson.length(); i++) {
+//
+//                                        try {
+//
+//                                            JSONObject obj = ObjJson.getJSONObject(i);
+//                                            Pdv pdv = new Pdv();
+//                                            pdv.setId(Integer.valueOf(obj.getString("id")));
+//                                            pdv.setPdv(obj.getString("fullname"));
+//                                            //pdv.setThumbnailUrl(obj.getString("image"));
+//                                            pdv.setDireccion(obj.getString("address"));
+//                                            pdv.setDistrito(obj.getString("district"));
+//                                            pdv.setStatus(obj.getInt("status"));
+//
+//                                            pdvList.add(pdv);
+//                                        } catch (JSONException e) {
+//                                            e.printStackTrace();
+//                                        }
+//
+//                                    }
+//
+//                                    pdvs1.setText(String.valueOf(contadorPDVS)) ;
+//                                    pdvsAuditados1.setText(String.valueOf(auditadosPDV));
+//
+//                                    float porcentajeAvance=(auditadosPDV / contadorPDVS) *100;
+//                                    BigDecimal big = new BigDecimal(porcentajeAvance);
+//                                    big = big.setScale(2, RoundingMode.HALF_UP);
+//                                    porcentajeAvance1.setText( String.valueOf(big ) + " % ");
+//                                }
+//
+//
+//
+//
+//
+//                            }
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                        adapter.notifyDataSetChanged();
+//                        hidePDialog();
+//                    }
+//                },
+//                new Response.ErrorListener() {
+//                    @Override
+//                    public void onErrorResponse(VolleyError error) {
+//                        //VolleyLog.d(TAG, "Error: " + error.getMessage());
+//                        hidePDialog();
+//                    }
+//                }
+//        );
+//
+//        AppController.getInstance().addToRequestQueue(jsObjRequest);
+    }
 
-                                    contadorPDVS = contadorPDVS + Integer.valueOf(response.getString("pdvs"));
-                                    auditadosPDV =  auditadosPDV + Integer.valueOf(response.getString("auditados"));
+    class loadStores extends AsyncTask<Void, Integer, ArrayList<Pdv>> {
+        /**
+         * Antes de comenzar en el hilo determinado, Mostrar progresión
+         */
+        boolean failure = false;
 
-                                    for (int i = 0; i < ObjJson.length(); i++) {
-//                                    JSONObject obj = agentesObjJson.getJSONObject(i);
-//                                    // Storing each json item in variable
-//                                    String idAuditoria = obj.getString("id");
-//                                    String auditoria = obj.getString("auditoria");
-//                                    int status = obj.getInt("status");
-                                        try {
+        @Override
+        protected void onPreExecute() {
+            //tvCargando.setText("Cargando Product...");
 
-//                                            JSONObject obj = agentesObjJson.getJSONObject(i);
-//                                            contadorPDVS = contadorPDVS + Integer.valueOf(obj.getString("pdvs"));
-//                                            auditadosPDV =  auditadosPDV + Integer.valueOf(obj.getString("auditados"));
-//                                            Ruta ruta = new Ruta();
-//                                            ruta.setId(obj.getInt("id"));
-//                                            ruta.setRutaDia(obj.getString("fullname"));
-//                                            ruta.setPdvs(Integer.valueOf(obj.getString("pdvs")) );
-//                                            ruta.setPorcentajeAvance(Integer.valueOf(obj.getString("auditados")));
-//                                            // adding movie to movies array
-//                                            rutaList.add(ruta);
-                                            JSONObject obj = ObjJson.getJSONObject(i);
-                                            Pdv pdv = new Pdv();
-                                            pdv.setId(Integer.valueOf(obj.getString("id")));
-                                            pdv.setPdv(obj.getString("fullname"));
-                                            //pdv.setThumbnailUrl(obj.getString("image"));
-                                            pdv.setDireccion(obj.getString("address"));
-                                            pdv.setDistrito(obj.getString("district"));
-                                            pdv.setStatus(obj.getInt("status"));
+            pDialog = new ProgressDialog(MyActivity);
+            pDialog.setMessage("Cargando...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+            super.onPreExecute();
+        }
 
+        @Override
+        protected ArrayList<Pdv> doInBackground(Void... params) {
+            // TODO Auto-generated method stub
 
-//                                            int idpuntoventa=Integer.valueOf(obj.getString("id"));
-//                                            if(idpuntoventa==29){
-//                                                pdv.setStatus(1);
-//                                            } else if(idpuntoventa==34){
-//                                                pdv.setStatus(1);
-//                                            } else{
-//                                                pdv.setStatus(0);
-//                                            }
-                                            // adding movie to movies array
-                                            pdvList.add(pdv);
-                                        } catch (JSONException e) {
-                                            e.printStackTrace();
-                                        }
+            ArrayList<Pdv> listPdv = new ArrayList<Pdv>();
+            listPdv = AuditUtil.getLisStores(IdRuta, GlobalConstant.company_id);
+            return listPdv;
+        }
 
-                                    }
+        /**
+         * After completing background task Dismiss the progress dialog
+         **/
+        protected void onPostExecute(ArrayList<Pdv> pdvs) {
+            // dismiss the dialog once product deleted
 
 
+            if (pdvs.isEmpty()) {
+//                Toast.makeText(TimelineActivity.this, getResources().getString(R.string.label_tweets_not_found),
+//                        Toast.LENGTH_SHORT).show();
 
-                                    pdvs1.setText(String.valueOf(contadorPDVS)) ;
-                                    pdvsAuditados1.setText(String.valueOf(auditadosPDV));
-
-                                    float porcentajeAvance=(auditadosPDV / contadorPDVS) *100;
-                                    BigDecimal big = new BigDecimal(porcentajeAvance);
-                                    big = big.setScale(2, RoundingMode.HALF_UP);
-                                    porcentajeAvance1.setText( String.valueOf(big ) + " % ");
-                                }
-
-
+                //pdvList.addAll(pdvs);
+            } else {
+//                updateListView(tweets);
+//                Toast.makeText(TimelineActivity.this, getResources().getString(R.string.label_tweets_downloaded),
+//                        Toast.LENGTH_SHORT).show();
 
 
+                float contadorStore = pdvs.size();
+                float auditadosStore = 0;
 
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
 
-                        adapter.notifyDataSetChanged();
-                        hidePDialog();
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        //VolleyLog.d(TAG, "Error: " + error.getMessage());
-                        hidePDialog();
+                for (int i = 0; i < pdvs.size(); i++) {
+
+                    if(pdvs.get(i).getStatus() == 1) {
+                        auditadosStore ++;
                     }
                 }
-        );
 
-        AppController.getInstance().addToRequestQueue(jsObjRequest);
+
+                pdvs1.setText(String.valueOf(contadorStore)) ;
+                pdvsAuditados1.setText(String.valueOf(auditadosStore));
+
+                float porcentajeAvance=(auditadosStore / contadorStore) *100;
+                BigDecimal big = new BigDecimal(porcentajeAvance);
+                big = big.setScale(2, RoundingMode.HALF_UP);
+                porcentajeAvance1.setText( String.valueOf(big) + " % ");
+
+                pdvList.addAll(pdvs);
+                adapter.notifyDataSetChanged();
+            }
+
+
+            hidePDialog();
+        }
     }
+
 
     @Override
     public void onDestroy() {
@@ -380,5 +411,8 @@ public class PuntosVenta extends Activity {
         finish();
         startActivity(getIntent());
     }
+
+
+
 }
 

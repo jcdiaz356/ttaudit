@@ -70,7 +70,7 @@
                 android:layout_width="wrap_content"
 
                 android:layout_height="wrap_content"
-                android:text="El establecimiento estaba congestionado" />
+                android:text="POS no operativo" />
                 <RadioButton
                     android:id="@+id/rbE"
                     android:layout_width="wrap_content"
@@ -81,6 +81,12 @@
                     android:id="@+id/rbF"
                     android:layout_width="wrap_content"
 
+                    android:layout_height="wrap_content"
+                    android:text="Falta de conocimiento de la operativa / capacitación" />
+
+                <RadioButton
+                    android:id="@+id/rbG"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Otro" />
             </RadioGroup>

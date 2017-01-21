@@ -53,12 +53,12 @@
                 android:text="No solicita ayuda para realizar la operación"
                 android:padding="5dp"
                 android:id="@+id/cbC" />
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Conoce la página web para conseguir información"
-                android:padding="5dp"
-                android:id="@+id/cbD" />
+            <!--<CheckBox-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="Conoce la página web para conseguir información"-->
+                <!--android:padding="5dp"-->
+                <!--android:id="@+id/cbD" />-->
 
 
 

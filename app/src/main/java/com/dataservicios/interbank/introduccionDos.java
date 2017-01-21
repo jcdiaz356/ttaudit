@@ -10,10 +10,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -23,8 +20,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.SQLite.DatabaseHelper;
-import com.dataservicios.librerias.GlobalConstant;
-import com.dataservicios.librerias.SessionManager;
+import com.dataservicios.util.GlobalConstant;
+import com.dataservicios.util.SessionManager;
 import com.dataservicios.systemauditor.AndroidCustomGalleryActivity;
 import com.dataservicios.systemauditor.R;
 import org.json.JSONArray;
@@ -34,12 +31,13 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 import app.AppController;
-import model.Encuesta;
+import com.dataservicios.model.Encuesta;
 
 /**
  * Created by usuario on 09/04/2015.
  */
 public class introduccionDos extends Activity {
+    private static final String LOG_TAG = introduccionDos.class.getSimpleName();
     private ProgressDialog pDialog;
     private int idCompany, idPDV, idRuta, idAuditoria,idUser,idPoll ;
     private JSONObject params;
@@ -222,6 +220,7 @@ public class introduccionDos extends Activity {
                         paramsData = new JSONObject();
                         try {
                             paramsData.put("poll_id", pregunta.getTag());
+                            paramsData.put("user_id", String.valueOf(idUser));
                             paramsData.put("store_id", idPDV);
                             paramsData.put("idAuditoria", idAuditoria);
                             paramsData.put("idCompany", idCompany);
@@ -234,6 +233,7 @@ public class introduccionDos extends Activity {
                             paramsData.put("comentario", "");
                             paramsData.put("opcion", opciones);
                             paramsData.put("result", result);
+
                             if(result==0){
                                 paramsData.put("status", "1");
                                 GlobalConstant.global_close_audit=1;
@@ -301,7 +301,7 @@ public class introduccionDos extends Activity {
                     @Override
                     public void onResponse(JSONObject response)
                     {
-                        Log.d("DATAAAA", response.toString());
+                        Log.d(LOG_TAG, response.toString());
                         //adapter.notifyDataSetChanged();
                         try {
                             //String agente = response.getString("agentes");
@@ -390,7 +390,8 @@ public class introduccionDos extends Activity {
     }
     private void leerEncuesta() {
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(67);
+            //Encuesta encuesta = db.getEncuesta(528);
+            Encuesta encuesta = db.getEncuesta(GlobalConstant.poll_id[2]);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());

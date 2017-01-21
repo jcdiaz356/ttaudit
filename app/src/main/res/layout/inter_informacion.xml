@@ -169,7 +169,6 @@
                 android:padding="5dp"
                 android:id="@+id/cbK" />
 
-
         </LinearLayout>
 
         <LinearLayout

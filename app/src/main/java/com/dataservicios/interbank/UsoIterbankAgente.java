@@ -5,10 +5,10 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -25,8 +25,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dataservicios.SQLite.DatabaseHelper;
-import com.dataservicios.librerias.GlobalConstant;
-import com.dataservicios.librerias.SessionManager;
+import com.dataservicios.model.Audit;
+import com.dataservicios.model.PollDetail;
+import com.dataservicios.util.AuditUtil;
+import com.dataservicios.util.GlobalConstant;
+import com.dataservicios.util.SessionManager;
 import com.dataservicios.systemauditor.AndroidCustomGalleryActivity;
 import com.dataservicios.systemauditor.R;
 
@@ -34,17 +37,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 import app.AppController;
-import model.Encuesta;
+import com.dataservicios.model.Encuesta;
 
 /**
  * Created by usuario on 30/03/2015.
  */
 public class UsoIterbankAgente extends Activity {
-
-    private static final String TAG_ID = "id";
+    private static final String LOG_TAG = UsoIterbankAgente.class.getSimpleName();
 
     private ProgressDialog pDialog;
     private int idCompany, idPDV, idRuta, idAuditoria,idUser, idPoll ;
@@ -64,6 +68,9 @@ public class UsoIterbankAgente extends Activity {
     private String opciones="";
 
     private DatabaseHelper db;
+    private PollDetail pollDetail;
+    private Audit mAudit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -148,9 +155,6 @@ public class UsoIterbankAgente extends Activity {
             @Override
             public void onClick(View v) {
 
-
-
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity);
                 builder.setTitle("Guardar Encuesta");
                 builder.setMessage("Está seguro de guardar todas las encuestas: ");
@@ -204,20 +208,14 @@ public class UsoIterbankAgente extends Activity {
                                     selected = true;
                                     opcionE =  idPoll + "e|";
                                 }
-
-
-
                                 opciones = opcionA + opcionB + opcionC + opcionD + opcionE ;
-
                                 result = 1;
-
                                 if (!selected){
                                     Toast toast;
                                     toast = Toast.makeText(MyActivity,"Debe marcar una opción" , Toast.LENGTH_LONG);
                                     toast.show();
                                     return;
                                 }
-
 
                                 // enabledControl(true);
                             } else if(id == rbNo.getId()){
@@ -226,15 +224,11 @@ public class UsoIterbankAgente extends Activity {
                             }
                         }
 
-
-
-
-
-
                         JSONObject paramsData;
                         paramsData = new JSONObject();
                         try {
                             paramsData.put("poll_id", pregunta.getTag());
+                            paramsData.put("user_id", String.valueOf(idUser));
                             paramsData.put("store_id", idPDV);
                             paramsData.put("idAuditoria", idAuditoria);
                             paramsData.put("idCompany", idCompany);
@@ -249,11 +243,40 @@ public class UsoIterbankAgente extends Activity {
                             paramsData.put("opcion",opciones );
                             paramsData.put("status", "0");
                             paramsData.put("comentario", "");
-                            //params.put("id_pdv",idPDV);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                         insertaEncuesta(paramsData);
+
+
+
+
+
+//                        //comentario = String.valueOf(etComent.getText()) ;
+//                        pollDetail = new PollDetail();
+//                        pollDetail.setPoll_id(idPoll);
+//                        pollDetail.setStore_id(idPDV);
+//                        pollDetail.setSino(1);
+//                        pollDetail.setOptions(1);
+//                        pollDetail.setLimits(0);
+//                        pollDetail.setMedia(1);
+//                        pollDetail.setComment(0);
+//                        pollDetail.setResult(result);
+//                        pollDetail.setLimite(0);
+//                        pollDetail.setComentario("");
+//                        pollDetail.setAuditor(idUser);
+//                        pollDetail.setProduct_id(0);
+//                        pollDetail.setCategory_product_id(0);
+//                        pollDetail.setPublicity_id(0);
+//                        pollDetail.setCompany_id(GlobalConstant.company_id);
+//                        pollDetail.setCommentOptions(0);
+//                        pollDetail.setSelectdOptions(opciones);
+//                        pollDetail.setSelectedOtionsComment("");
+//                        pollDetail.setPriority("0");
+//
+//                        new loadPoll().execute();
+
+
                         dialog.dismiss();
 
                     }
@@ -284,7 +307,7 @@ public class UsoIterbankAgente extends Activity {
                     @Override
                     public void onResponse(JSONObject response)
                     {
-                        Log.d("DATAAAA", response.toString());
+                        Log.d(LOG_TAG, response.toString());
                         //adapter.notifyDataSetChanged();
                         try {
                             //String agente = response.getString("agentes");
@@ -338,7 +361,8 @@ public class UsoIterbankAgente extends Activity {
 
     private void leerEncuesta() {
         if(db.getEncuestaCount()>0) {
-            Encuesta encuesta = db.getEncuesta(42);
+            //Encuesta encuesta = db.getEncuesta(529);
+            Encuesta encuesta = db.getEncuesta(GlobalConstant.poll_id[3]);
             //if (idPregunta.equals("2")  ){
             pregunta.setText(encuesta.getQuestion());
             pregunta.setTag(encuesta.getId());
@@ -355,7 +379,7 @@ public class UsoIterbankAgente extends Activity {
                     @Override
                     public void onResponse(JSONObject response)
                     {
-                        Log.d("DATAAAA", response.toString());
+                        Log.d(LOG_TAG, response.toString());
                         //adapter.notifyDataSetChanged();
                         try {
                             //String agente = response.getString("agentes");
@@ -403,19 +427,7 @@ public class UsoIterbankAgente extends Activity {
 
     // Camera
     private void takePhoto() {
-        /*Intent intent = new Intent((MediaStore.ACTION_IMAGE_CAPTURE));
-        intent.putExtra(MediaStore.EXTRA_OUTPUT,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI.toString());
 
-        startActivityForResult(intent, 100);
-        */
-
-        //Bundle bundle = getIntent().getExtras();
-        //String id_agente = bundle.getString(TAG_ID);
-
-        // getting values from selected ListItem
-       // String aid = id_agente;
-        // Starting new intent
         Intent i = new Intent( MyActivity, AndroidCustomGalleryActivity.class);
         Bundle bolsa = new Bundle();
         bolsa.putString("idPDV",String.valueOf(idPDV));
@@ -427,6 +439,59 @@ public class UsoIterbankAgente extends Activity {
         startActivity(i);
 
 
+    }
+
+    class loadPoll extends AsyncTask<Void , Integer , Boolean> {
+        /**
+         * Antes de comenzar en el hilo determinado, Mostrar progresión
+         * */
+        boolean failure = false;
+        @Override
+        protected void onPreExecute() {
+            //tvCargando.setText("Cargando Product...");
+            pDialog.show();
+            super.onPreExecute();
+        }
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            // TODO Auto-generated method stub
+
+
+                if(!AuditUtil.insertPollDetail(pollDetail)) return false;
+
+
+            return true;
+        }
+        /**
+         * After completing background task Dismiss the progress dialog
+         * **/
+        protected void onPostExecute(Boolean result) {
+            // dismiss the dialog once product deleted
+
+            if (result){
+                // loadLoginActivity();
+
+                Bundle argRuta = new Bundle();
+                argRuta.clear();
+                argRuta.putInt("company_id",idCompany);
+                argRuta.putInt("idPDV",idPDV);
+                argRuta.putInt("idRuta", idRuta );
+
+                argRuta.putInt("idAuditoria",idAuditoria);
+                Intent intent;
+                //intent = new Intent("com.dataservicios.systemauditor.USOIBKSEGUNDO");
+                intent = new Intent(MyActivity,UsoInterbankAgenteSegundo.class);
+                intent.putExtras(argRuta);
+                startActivity(intent);
+                finish();
+
+
+
+            } else {
+                Toast.makeText(MyActivity , "No se pudo guardar la información intentelo nuevamente", Toast.LENGTH_LONG).show();
+            }
+            hidepDialog();
+        }
     }
 
     private void showpDialog() {
@@ -486,4 +551,6 @@ public class UsoIterbankAgente extends Activity {
         }
 
     }
+
+
 }

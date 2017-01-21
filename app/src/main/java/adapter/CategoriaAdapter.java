@@ -12,7 +12,7 @@ import com.dataservicios.systemauditor.R;
 
 import java.util.List;
 
-import model.Categoria;
+import com.dataservicios.model.Categoria;
 
 
 /**

@@ -19,8 +19,8 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.dataservicios.librerias.GlobalConstant;
-import com.dataservicios.librerias.SessionManager;
+import com.dataservicios.util.GlobalConstant;
+import com.dataservicios.util.SessionManager;
 import com.dataservicios.systemauditor.R;
 
 import org.json.JSONArray;
@@ -35,7 +35,7 @@ import app.AppController;
  * Created by usuario on 09/04/2015.
  */
 public class introduccionCero extends Activity {
-
+    private static final String LOG_TAG = introduccionCero.class.getSimpleName();
     private ProgressDialog pDialog;
     private int idCompany, idPDV, idRuta, idAuditoria,idUser ;
     private JSONObject params;
@@ -48,9 +48,6 @@ public class introduccionCero extends Activity {
     RadioGroup rgTipo;
     RadioButton rbSi,rbNo;
     EditText comentario;
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -132,7 +129,6 @@ public class introduccionCero extends Activity {
                 builder.setTitle("Guardar Encuesta");
                 builder.setMessage("Está seguro de guardar todas las encuestas: ");
                 builder.setPositiveButton("Si", new DialogInterface.OnClickListener()
-
                 {
                     @Override
                     public void onClick(DialogInterface dialog, int which)
@@ -141,6 +137,7 @@ public class introduccionCero extends Activity {
                         paramsData = new JSONObject();
                         try {
                             paramsData.put("poll_id", pregunta.getTag());
+                            paramsData.put("user_id", String.valueOf(idUser));
                             paramsData.put("store_id", idPDV);
                             paramsData.put("idAuditoria", idAuditoria);
                             paramsData.put("idCompany", idCompany);
@@ -162,7 +159,6 @@ public class introduccionCero extends Activity {
 
                     }
                 });
-
                 builder.setNegativeButton("No", new DialogInterface.OnClickListener()
                 {
                     @Override
@@ -171,13 +167,10 @@ public class introduccionCero extends Activity {
                         dialog.dismiss();
                     }
                 });
-
                 builder.show();
                 builder.setCancelable(false);
-
             }
         });
-
     }
 
     private void insertaEncuesta(JSONObject paramsData) {
@@ -188,7 +181,7 @@ public class introduccionCero extends Activity {
                     @Override
                     public void onResponse(JSONObject response)
                     {
-                        Log.d("DATAAAA", response.toString());
+                        Log.d(LOG_TAG, response.toString());
                         //adapter.notifyDataSetChanged();
                         try {
                             //String agente = response.getString("agentes");

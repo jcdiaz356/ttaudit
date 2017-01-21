@@ -50,6 +50,21 @@
         android:textColor="@color/genre"
         android:textSize="@dimen/genre" />
 
+
+    <TextView
+        android:id="@+id/tvStoreId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvDistrito"
+        android:layout_marginTop="5dp"
+        android:text=""
+        android:layout_toRightOf="@+id/thumbnail"
+        android:background="@color/color_buttom_rojo"
+        android:textColor="@color/color_dt_white"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:textSize="@dimen/genre" />
+
     <!-- Release Year -->
 
     <ImageView

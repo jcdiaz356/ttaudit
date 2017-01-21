@@ -3,11 +3,12 @@ package com.dataservicios.systemauditor;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -16,20 +17,17 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.dataservicios.SQLite.DatabaseHelper;
-import com.dataservicios.librerias.GlobalConstant;
-import com.dataservicios.librerias.GlobalMessage;
-import com.dataservicios.librerias.JSONParser;
-import com.dataservicios.librerias.SessionManager;
+import com.dataservicios.util.GlobalConstant;
+import com.dataservicios.util.SessionManager;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-import model.User;
+import com.dataservicios.model.User;
+import com.dataservicios.util.JSONParserX;
 
 /**
  * Created by usuario on 05/11/2014.
@@ -42,9 +40,11 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     private ProgressDialog pDialog;
     // Session Manager Class
     SessionManager session;
+    String username, password;
 
     // JSON parser class
-    JSONParser jsonParser = new JSONParser();
+    //JSONParserX jsonParser = new JSONParserX();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -103,6 +103,8 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                     contrasena.requestFocus();
                 }else {
 
+                            username = usuario.getText().toString();
+                            password = contrasena.getText().toString();
                             new AttemptLogin().execute();
 
 
@@ -149,18 +151,37 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             // TODO Auto-generated method stub
             // Comprobando si es exito
             int success;
-            String username = usuario.getText().toString();
-            String password = contrasena.getText().toString();
+
             int id_user ;
             try {
                 // Construyendo los parametros
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                params.add(new BasicNameValuePair("username", username));
-                params.add(new BasicNameValuePair("password", password));
+
+                TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+                // get IMEI
+                tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                // get IMEI
+                String imei = tm.getDeviceId();
+                String imei1 = tm.getLine1Number();
+                // get SimSerialNumber
+                String simSerialNumber = tm.getSimSerialNumber();
+
+//                List<NameValuePair> params = new ArrayList<NameValuePair>();
+//                params.add(new BasicNameValuePair("username", username));
+//                params.add(new BasicNameValuePair("password", password));
+//                params.add(new BasicNameValuePair("imei", simSerialNumber));
+
+                HashMap<String, String> params = new HashMap<>();
+
+                params.put("username", String.valueOf(username));
+                params.put("password", String.valueOf(password));
+                params.put("imei", String.valueOf(simSerialNumber));
 
                 Log.d("request!", "starting");
                 // getting product details by making HTTP request
-                JSONObject json = jsonParser.makeHttpRequest(GlobalConstant.dominio + "/loginUser" ,"POST", params);
+                //JSONObject json = jsonParser.makeHttpRequest(GlobalConstant.dominio + "/loginUser" ,"POST", params);
+                JSONParserX jsonParser = new JSONParserX();
+
+                JSONObject json = jsonParser.makeHttpRequest(GlobalConstant.dominio + "/loginMovil" ,"POST", params);
 
                 // check your log for json response
                 Log.d("Login attempt", json.toString());
@@ -173,8 +194,8 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                     db.deleteAllUser();
                     User users = new User();
                     users.setId(id_user);
-                    users.setNombre( usuario.getText().toString());
-                    users.setPassword(contrasena.getText().toString());
+                    users.setNombre(username);
+                    users.setPassword(password);
                     db.createUser(users);
                     // Creating user login session
                     // For testing i am stroing name, email as follow

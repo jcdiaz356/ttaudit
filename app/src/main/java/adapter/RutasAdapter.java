@@ -8,14 +8,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.NetworkImageView;
 import com.dataservicios.systemauditor.R;
 
 import java.util.List;
 
-import app.AppController;
-import model.Ruta;
+import com.dataservicios.model.Ruta;
 
 /**
  * Created by usuario on 10/01/2015.

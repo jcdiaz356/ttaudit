@@ -51,8 +51,34 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textIsSelectable="true"
                 android:text=" Tienda Pepito"
                 android:id="@+id/tvTienda"
+                android:textSize="@dimen/general" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp">
+
+            <TextView
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="DIR: "
+                android:id="@+id/tvDir"
+                android:textSize="@dimen/general" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textIsSelectable="true"
+                android:text="DIRM"
+                android:id="@+id/tvCodCliente"
                 android:textSize="@dimen/general" />
 
         </LinearLayout>
@@ -74,6 +100,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textIsSelectable="true"
                 android:text="Av. Tello Julio C Maz. G Lt. 16"
                 android:id="@+id/tvDireccion"
                 android:textSize="@dimen/general" />
@@ -89,8 +116,32 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Representante: "
-                android:id="@+id/textView"
+                android:text="Referencia: "
+
+                android:textSize="@dimen/general" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textIsSelectable="true"
+                android:text="Av. Tello Julio C Maz. G Lt. 16"
+                android:id="@+id/tvReferencia"
+                android:textSize="@dimen/general" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Distrito: "
                 android:textSize="@dimen/general"
                 />
 
@@ -98,11 +149,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textIsSelectable="true"
                 android:text="Juan Carlos Torrez Chavez"
-                android:id="@+id/tvRepresentante"
+                android:id="@+id/tvDistrito"
                 android:textSize="@dimen/general" />
 
         </LinearLayout>
+
 
         <LinearLayout
             android:orientation="horizontal"
@@ -114,8 +167,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Lat.:: "
-
+                android:text="Ejecutivo: "
                 android:textSize="@dimen/general"
                 />
 
@@ -123,36 +175,65 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="Longitud"
-                android:id="@+id/tvLatitud"
+                android:textIsSelectable="true"
+                android:text="Juan Carlos Torrez Chavez"
+                android:id="@+id/tvEjecutivo"
                 android:textSize="@dimen/general" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp">
+        <!--<LinearLayout-->
+            <!--android:orientation="horizontal"-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:padding="5dp">-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Long.: "
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textAppearance="?android:attr/textAppearanceLarge"-->
+                <!--android:text="Lat.:: "-->
 
-                android:textSize="@dimen/general"
-                />
+                <!--android:textSize="@dimen/general"-->
+                <!--/>-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="logitud"
-                android:id="@+id/tvlogitud"
-                android:textSize="@dimen/general" />
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
+                <!--android:textIsSelectable="true"-->
+                <!--android:text="Longitud"-->
+                <!--android:id="@+id/tvLatitud"-->
+                <!--android:textSize="@dimen/general" />-->
 
-        </LinearLayout>
+        <!--</LinearLayout>-->
+
+        <!--<LinearLayout-->
+            <!--android:orientation="horizontal"-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:padding="5dp">-->
+
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textAppearance="?android:attr/textAppearanceLarge"-->
+
+                <!--android:text="Long.: "-->
+
+                <!--android:textSize="@dimen/general"-->
+                <!--/>-->
+
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
+                <!--android:textIsSelectable="true"-->
+                <!--android:text="logitud"-->
+                <!--android:id="@+id/tvlogitud"-->
+                <!--android:textSize="@dimen/general" />-->
+
+        <!--</LinearLayout>-->
 
         <LinearLayout
             android:orientation="horizontal"

@@ -32,4 +32,10 @@
     <color name="list_row_hover_start_color">#ebeef0</color>
     <color name="list_row_hover_end_color">#ebeef0</color>
 
+
+    <!--Color Dataservicios-->
+    <color name="color_dt_base">#ff000000</color>
+    <color name="color_dt_white">#ffffffff</color>
+    <color name="color_dt_fondo">#29abe2</color>
+
 </resources>

@@ -1,66 +1,42 @@
 package com.dataservicios.systemauditor;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.dataservicios.Services.UploadService;
+import com.dataservicios.util.GlobalConstant;
 
-import org.apache.http.HttpVersion;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
 //import org.apache.http.entity.mime.MultipartEntity;
 //import org.apache.http.entity.mime.content.ContentBody;
 //import org.apache.http.entity.mime.content.FileBody;
 //import org.apache.http.entity.mime.content.InputStreamBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.CoreProtocolPNames;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 import adapter.ImageAdapter;
-
 /**
  * Created by user on 06/02/2015.
  */
@@ -69,7 +45,7 @@ public class AndroidCustomGalleryActivity extends Activity {
 
     private static final int TAKE_PICTURE = 1;
     private String mCurrentPhotoPath;
-    private static final String JPEG_FILE_PREFIX = "-Agente_foto_";
+    private static final String JPEG_FILE_PREFIX = "_IBK_";
     private static final String JPEG_FILE_SUFFIX = ".jpg";
     //private static final String url_insert_image = "http://redagentesyglobalnet.com/insertImagesAgent";
    // private static final String url_upload_image = "http://redagentesyglobalnet.com/uploadImagesAgent";
@@ -108,7 +84,6 @@ public class AndroidCustomGalleryActivity extends Activity {
             mAlbumStorageDirFactory = new BaseAlbumDirFactory();
         }
 
-
         Button btn_photo = (Button)findViewById(R.id.take_photo);
         Button btn_upload = (Button)findViewById(R.id.save_images);
         // Register the onClick listener with the implementation above
@@ -118,13 +93,12 @@ public class AndroidCustomGalleryActivity extends Activity {
                 // create intent with ACTION_IMAGE_CAPTURE action
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-
                 Bundle bundle = getIntent().getExtras();
                 String idPDV = bundle.getString("idPDV");
 
                 // Create an image file name
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                String imageFileName = String.format("%06d", Integer.parseInt(idPDV))+JPEG_FILE_PREFIX + timeStamp;
+                String imageFileName = String.format("%06d", Integer.parseInt(idPDV))+ "_" + GlobalConstant.company_id + JPEG_FILE_PREFIX + timeStamp;
                 File albumF = getAlbumDir();
                 // to save picture remove comment
                 File file = new File(albumF,imageFileName+JPEG_FILE_SUFFIX);
@@ -168,7 +142,9 @@ public class AndroidCustomGalleryActivity extends Activity {
 
                             for (int i = 0; i < count; i++) {
 
-                                LinearLayout itemLayout = (LinearLayout)imagegrid.getChildAt(i); // Find by under LinearLayout
+                                //LinearLayout itemLayout = (LinearLayout)imagegrid.getChildAt(i); // Find by under LinearLayout
+
+                                RelativeLayout itemLayout = (RelativeLayout)imagegrid.getChildAt(i); // Find by under LinearLayout
                                 CheckBox checkbox = (CheckBox)itemLayout.findViewById(R.id.itemCheckBox);
                                 if(checkbox.isChecked())
                                 {
@@ -183,15 +159,13 @@ public class AndroidCustomGalleryActivity extends Activity {
 
                                         try {
                                             copyFile(getAlbumDir() + "/" + listFile[i].getName(), getAlbumDirTemp() + "/" + listFile[i].getName());
+                                            copyFile(getAlbumDir() + "/" + listFile[i].getName(), getAlbumDirBackup() + "/" + listFile[i].getName());
                                         } catch (IOException e) {
                                             e.printStackTrace();
                                         }
                                     }
 
                                     listFile[i].delete();
-
-
-
 
                                 }
                             }
@@ -359,7 +333,9 @@ public class AndroidCustomGalleryActivity extends Activity {
     private String getAlbumName() {
         return getString(R.string.album_name);
     }
-
+    private String getAlbunNameBackup(){
+        return  getString(R.string.album_name_backup);
+    }
    private String getAlbunNameTemp(){
        return  getString(R.string.album_name_temp);
    }
@@ -400,6 +376,29 @@ public class AndroidCustomGalleryActivity extends Activity {
                 if (! storageDir.mkdirs()) {
                     if (! storageDir.exists()){
                         Log.d(getAlbunNameTemp(), "failed to create directory");
+                        return null;
+                    }
+                }
+            }
+
+        } else {
+            Log.v(getString(R.string.app_name), "External storage is not mounted READ/WRITE.");
+        }
+
+        return storageDir;
+    }
+
+    private File getAlbumDirBackup() {
+        File storageDir = null;
+
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+
+            storageDir = mAlbumStorageDirFactory.getAlbumStorageDir(getAlbunNameBackup());
+
+            if (storageDir != null) {
+                if (! storageDir.mkdirs()) {
+                    if (! storageDir.exists()){
+                        Log.d(getAlbunNameBackup(), "failed to create directory");
                         return null;
                     }
                 }

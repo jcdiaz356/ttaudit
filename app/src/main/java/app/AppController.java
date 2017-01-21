@@ -1,8 +1,11 @@
 package app;
 
-import util.LruBitmapCache;
+import com.dataservicios.Services.MonitoGPSServices;
+import com.dataservicios.util.LruBitmapCache;
 import android.app.Application;
+import android.content.Intent;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -15,19 +18,23 @@ public class AppController extends Application {
 
 	private RequestQueue mRequestQueue;
 	private ImageLoader mImageLoader;
+	private boolean serviceRunningFlag;
 
 	private static AppController mInstance;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		startService(new Intent(this, MonitoGPSServices.class));
 		mInstance = this;
 	}
 
 	public static synchronized AppController getInstance() {
 		return mInstance;
 	}
-
+	public void setServiceRunningFlag(boolean serviceRunningFlag) {
+		this.serviceRunningFlag = serviceRunningFlag;
+	}
 	public RequestQueue getRequestQueue() {
 		if (mRequestQueue == null) {
 			mRequestQueue = Volley.newRequestQueue(getApplicationContext());
@@ -60,5 +67,11 @@ public class AppController extends Application {
 		if (mRequestQueue != null) {
 			mRequestQueue.cancelAll(tag);
 		}
+	}
+	@Override
+	public void onTerminate() {
+		super.onTerminate();
+		Log.i(TAG, "onTerminated");
+		stopService(new Intent(this, MonitoGPSServices.class));
 	}
 }

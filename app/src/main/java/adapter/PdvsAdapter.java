@@ -2,7 +2,6 @@ package adapter;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +16,7 @@ import com.dataservicios.systemauditor.R;
 import java.util.List;
 
 import app.AppController;
-import model.Pdv;
+import com.dataservicios.model.Pdv;
 
 /**
  * Created by usuario on 12/01/2015.
@@ -62,10 +61,13 @@ public class PdvsAdapter extends BaseAdapter {
         TextView pdv = (TextView) convertView.findViewById(R.id.tvPdv);
         TextView direccion = (TextView) convertView.findViewById(R.id.tvDireccion);
         TextView distrito = (TextView) convertView.findViewById(R.id.tvDistrito);
+        TextView storeId = (TextView) convertView.findViewById(R.id.tvStoreId);
         ImageView imgStatus = (ImageView) convertView.findViewById(R.id.imgStatus);
         // getting ruta data for the row
         Pdv m = pdvItems.get(position);
         idPdv.setText(String.valueOf(m.getId()));
+        storeId.setText(String.valueOf(m.getId()));
+
         // thumbnail image
        // thumbNail.setImageUrl(m.getThumbnailUrl(), imageLoader);
         // rutaDia
